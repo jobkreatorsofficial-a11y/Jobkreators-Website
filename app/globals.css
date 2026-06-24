@@ -1,30 +1,176 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-brand: #0066FF;
-  --color-brand-dark: #004FCC;
-  --color-gray-apple: #F5F5F7;
-  --color-dark-bg: #0A0A0A;
-  --color-dark-surface: #1A1A1A;
-  --color-text-primary: #1D1D1F;
-  --color-text-secondary: #6E6E73;
+/* ============================================================================
+   JOBKREATORS DESIGN SYSTEM — Phase 2 foundation
+   Tailwind v4: every design token lives in this single @theme block (there is
+   NO tailwind.config.js). Tokens here are emitted as CSS custom properties on
+   :root AND, where they sit in a recognized namespace (--color-*, --text-*,
+   --radius-*, --shadow-*, --font-*, --ease-*), generate the matching utilities.
+   Brand colors are MEASURED from the logo — see DESIGN.md. Do not invent hex.
+   ========================================================================== */
+@theme {
+  /* ---- Fonts ------------------------------------------------------------ */
   --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+
+  /* ---- Brand colors (sacred — match the logo lockup) -------------------- */
+  --color-brand-navy: #152a37; /* logo navy ink */
+  --color-brand-cyan: #5b9fbc; /* logo cyan accent (tie + tagline) */
+  --color-brand-cream: #f4f5f0; /* cream for dark surfaces */
+
+  /* ---- UI accent (screen-native tier, promoted from the recolor) -------- */
+  --color-accent: #7cd4ec; /* bright cyan — CTAs, AI moments, live data */
+  --color-accent-2: #3dc6e8; /* deeper hover/active state */
+  --color-accent-fg: #001318; /* legible text on accent */
+
+  /* ---- Accent ramp 50–950 (gradients, ring states, glow) ---------------- */
+  --color-accent-50: #ecfbfe;
+  --color-accent-100: #cff4fb;
+  --color-accent-200: #a6eaf7;
+  --color-accent-300: #7cd4ec; /* == --color-accent */
+  --color-accent-400: #5ccdea;
+  --color-accent-500: #3dc6e8; /* == --color-accent-2 */
+  --color-accent-600: #22a6cc;
+  --color-accent-700: #1a82a3;
+  --color-accent-800: #186a85;
+  --color-accent-900: #18596f;
+  --color-accent-950: #0a3a4a;
+
+  /* ---- Surfaces (dark-first) -------------------------------------------- */
+  --color-bg: #000000; /* page background */
+  --color-surface: #0a0f14; /* panels, cards */
+  --color-surface-2: #121922; /* raised panels, modals */
+  --color-surface-3: #1a2330; /* highest elevation */
+  --color-border: #1f2a38; /* default borders */
+  --color-border-strong: #2c3a4d; /* emphasized borders */
+  --color-ring: #7cd4ec; /* focus ring = accent */
+
+  /* ---- Text ------------------------------------------------------------- */
+  --color-text: #f4f5f0; /* primary */
+  --color-text-muted: #a4b0c0; /* secondary */
+  --color-text-subtle: #6b7888; /* tertiary, captions */
+
+  /* ---- Semantic --------------------------------------------------------- */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  /* ---- Type scale (mobile values; display tier scales up at md via the
+         companion -md tokens, e.g. text-display-2xl md:text-display-2xl-md) - */
+  --text-display-2xl: 56px;
+  --text-display-2xl--line-height: 60px;
+  --text-display-2xl--letter-spacing: -0.04em;
+  --text-display-2xl--font-weight: 700;
+  --text-display-2xl-md: 88px;
+  --text-display-2xl-md--line-height: 92px;
+  --text-display-2xl-md--letter-spacing: -0.04em;
+  --text-display-2xl-md--font-weight: 700;
+
+  --text-display-xl: 44px;
+  --text-display-xl--line-height: 48px;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-xl--font-weight: 700;
+  --text-display-xl-md: 72px;
+  --text-display-xl-md--line-height: 76px;
+  --text-display-xl-md--letter-spacing: -0.035em;
+  --text-display-xl-md--font-weight: 700;
+
+  --text-display: 36px;
+  --text-display--line-height: 40px;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 700;
+  --text-display-md: 56px;
+  --text-display-md--line-height: 60px;
+  --text-display-md--letter-spacing: -0.03em;
+  --text-display-md--font-weight: 700;
+
+  --text-h1: 32px;
+  --text-h1--line-height: 36px;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h1--font-weight: 600;
+  --text-h1-md: 44px;
+  --text-h1-md--line-height: 48px;
+  --text-h1-md--letter-spacing: -0.025em;
+  --text-h1-md--font-weight: 600;
+
+  --text-h2: 24px;
+  --text-h2--line-height: 28px;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 600;
+  --text-h2-md: 32px;
+  --text-h2-md--line-height: 36px;
+  --text-h2-md--letter-spacing: -0.02em;
+  --text-h2-md--font-weight: 600;
+
+  --text-h3: 20px;
+  --text-h3--line-height: 24px;
+  --text-h3--letter-spacing: -0.015em;
+  --text-h3--font-weight: 600;
+  --text-h3-md: 24px;
+  --text-h3-md--line-height: 28px;
+  --text-h3-md--letter-spacing: -0.015em;
+  --text-h3-md--font-weight: 600;
+
+  --text-h4: 18px;
+  --text-h4--line-height: 22px;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--letter-spacing: 0;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-body--letter-spacing: 0;
+  --text-body--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--letter-spacing: 0;
+  --text-body-sm--font-weight: 400;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--letter-spacing: 0.02em;
+  --text-caption--font-weight: 500;
+
+  --text-eyebrow: 11px;
+  --text-eyebrow--line-height: 14px;
+  --text-eyebrow--letter-spacing: 0.12em;
+  --text-eyebrow--font-weight: 500;
+
+  /* ---- Radius ----------------------------------------------------------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---- Elevation (dark-first: rgba black + inner highlight, not the fake
+         Tailwind defaults that look wrong on pure black) ------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-glow-accent: 0 0 24px rgba(124, 212, 236, 0.25), 0 0 64px rgba(124, 212, 236, 0.12);
+
+  /* ---- Motion (durations + easings; --ease-* also generate ease-* utils) - */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quad: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-:root {
-  --background: #ffffff;
-  --foreground: #1D1D1F;
-  --surface: #F5F5F7;
-  --border: #D2D2D7;
-}
-
-.dark {
-  --background: #0A0A0A;
-  --foreground: #F5F5F7;
-  --surface: #1A1A1A;
-  --border: #2D2D2D;
-}
-
+/* ============================================================================
+   Base layer
+   The system is dark-first: the design tokens above ARE the dark palette and
+   apply globally. Surfaces/text reference tokens, never literals.
+   ========================================================================== */
 * {
   box-sizing: border-box;
 }
@@ -34,23 +180,34 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Accent focus ring — keyboard users land on the brand color. */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D2D2D7; border-radius: 3px; }
-.dark ::-webkit-scrollbar-thumb { background: #3D3D3D; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
 
-/* Text gradient */
+/* Text gradient — accent ramp, on brand. */
 .gradient-text {
-  background: linear-gradient(135deg, #0066FF 0%, #6366F1 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-500) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -58,21 +215,20 @@ body {
 
 /* Glass card */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark .glass {
-  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Marquee animation */
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .marquee-track {
@@ -85,8 +241,14 @@ body {
 
 /* Pulse ring */
 @keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(1.6); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
 }
 
 .pulse-ring::before {
@@ -94,18 +256,53 @@ body {
   position: absolute;
   inset: -8px;
   border-radius: inherit;
-  border: 2px solid #0066FF;
+  border: 2px solid var(--color-accent);
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Timeline draw */
 @keyframes draw-line {
-  from { stroke-dashoffset: 1000; }
-  to { stroke-dashoffset: 0; }
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 /* Node pulse */
 @keyframes node-pulse {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* ============================================================================
+   Reduced-motion: kill non-essential animation globally. framer-motion is
+   additionally gated per-component on useMotionSafe() (the canonical primitive).
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-track,
+  .pulse-ring::before {
+    animation: none;
+  }
 }

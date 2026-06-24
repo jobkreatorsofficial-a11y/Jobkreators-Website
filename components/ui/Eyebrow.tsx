@@ -1,0 +1,39 @@
+import { cn } from "@/lib/cn";
+
+type EyebrowProps = {
+  /** Show a pulsing accent status dot before the label (live/now signals). */
+  dot?: boolean;
+  as?: React.ElementType;
+  className?: string;
+  children: React.ReactNode;
+};
+
+/**
+ * Eyebrow — uppercase small-caps label for section headers and the hero
+ * eyebrow. Uses the `eyebrow` type token (11px, 0.12em tracking). The optional
+ * status dot pulses via Tailwind's animate-ping, which the global
+ * reduced-motion block in globals.css stills for motion-sensitive users.
+ */
+export default function Eyebrow({
+  dot = false,
+  as: Tag = "span",
+  className,
+  children,
+}: EyebrowProps) {
+  return (
+    <Tag
+      className={cn(
+        "inline-flex items-center gap-2 text-eyebrow uppercase text-accent",
+        className,
+      )}
+    >
+      {dot && (
+        <span className="relative inline-flex h-1.5 w-1.5 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+        </span>
+      )}
+      {children}
+    </Tag>
+  );
+}

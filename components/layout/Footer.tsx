@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import Logo from "@/components/Logo";
 import { Phone, Mail, MessageCircle, MapPin } from "lucide-react";
 import { LinkedInIcon, InstagramIcon } from "@/components/ui/SocialIcons";
 import { SITE, NAV_LINKS } from "@/lib/data";
@@ -12,15 +12,9 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-5">
-              <div className="inline-block bg-white rounded-xl p-2">
-                <Image
-                  src="/logo.png"
-                  alt="JOBKREATORS"
-                  width={140}
-                  height={48}
-                  className="h-10 w-auto object-contain"
-                />
-              </div>
+              {/* Footer is a dark surface → original-color lockup on a larger
+                  cream tile, an intentional brand stamp (not a recolor). */}
+              <Logo variant="lockup" surface="tile" size="xl" />
             </div>
             <p className="text-[#A1A1A6] text-sm leading-relaxed max-w-xs mb-6">
               India&apos;s premium AI-powered recruitment and consultancy firm. Trusted by 242+ companies

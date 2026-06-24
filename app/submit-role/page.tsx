@@ -23,8 +23,8 @@ export default function SubmitRolePage() {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>();
   const [submitted, setSubmitted] = useState(false);
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const onSubmit = () => {
+    // TODO(phase-later): wire submission to a backend/email handler.
     setSubmitted(true);
     reset();
   };

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import Image from "next/image";
+import Logo from "@/components/Logo";
 
 export default function Logo3D() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,26 +50,18 @@ export default function Logo3D() {
             animate={{ rotateY: [-22, 22, -22] }}
             transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
             style={{ transformStyle: "preserve-3d" }}
-            className="relative w-64 h-64 lg:w-80 lg:h-80"
+            className="relative w-64 h-64 lg:w-80 lg:h-80 flex items-center justify-center"
           >
-            {/* Front face only — logo */}
+            {/* Front face — the refined cream brand tile carries the original
+                navy/cyan mark (surface="tile"); the wobble lifts it in 3D. The
+                heavy drop shadow follows the tile's rounded shape. */}
             <div
-              className="absolute inset-0 rounded-3xl overflow-hidden bg-white"
               style={{
                 transform: "translateZ(20px)",
-                boxShadow: "0 32px 80px rgba(0,0,0,0.45)",
+                filter: "drop-shadow(0 32px 80px rgba(0,0,0,0.55))",
               }}
             >
-              <div className="w-full h-full flex items-center justify-center p-8">
-                <Image
-                  src="/logo.png"
-                  alt="JOBKREATORS"
-                  width={240}
-                  height={180}
-                  className="w-full h-auto object-contain"
-                  priority
-                />
-              </div>
+              <Logo variant="mark" surface="tile" size={180} priority />
             </div>
           </motion.div>
         </motion.div>
@@ -83,18 +75,18 @@ export default function Logo3D() {
             bottom: "-48px",
             width: "200px",
             height: "16px",
-            background: "radial-gradient(ellipse, rgba(0,102,255,0.4) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse, rgba(124,212,236,0.4) 0%, transparent 70%)",
             filter: "blur(8px)",
           }}
         />
 
-        {/* Floating particles */}
+        {/* Floating particles — brand accent / cyan family (matches the tokens). */}
         {[
-          { x: -110, y: -70, delay: 0,   size: 6, color: "#0066FF" },
-          { x:  115, y: -55, delay: 1.0, size: 4, color: "#6366F1" },
-          { x: -125, y:  55, delay: 2.0, size: 5, color: "#0066FF" },
-          { x:  120, y:  65, delay: 0.5, size: 4, color: "#06B6D4" },
-          { x:    5, y: -125, delay: 1.5, size: 3, color: "#6366F1" },
+          { x: -110, y: -70, delay: 0,   size: 6, color: "#7CD4EC" },
+          { x:  115, y: -55, delay: 1.0, size: 4, color: "#3DC6E8" },
+          { x: -125, y:  55, delay: 2.0, size: 5, color: "#7CD4EC" },
+          { x:  120, y:  65, delay: 0.5, size: 4, color: "#5B9FBC" },
+          { x:    5, y: -125, delay: 1.5, size: 3, color: "#3DC6E8" },
         ].map((p, i) => (
           <motion.div
             key={i}

@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FounderSection from "@/components/home/FounderSection";
-import { STATS, SITE } from "@/lib/data";
+import { STATS } from "@/lib/data";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

@@ -42,8 +42,6 @@ const FRAME_INSET = 8;
 const ALPHA_CLEAR = 246; // min channel >= this => fully transparent
 const ALPHA_SOLID = 220; // min channel <= this => fully opaque
 
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-
 /** Read source, strip the frame, and produce a soft-alpha RGBA image. */
 async function loadProcessed() {
   const meta = await sharp(SRC).metadata();
@@ -181,21 +179,42 @@ function toSharp(img) {
   });
 }
 
+// The 31 KB source JPEG is small, so every downscale re-encodes soft edges.
+// Two sharpness passes (applied here, after trim + alpha conversion, before the
+// final PNG write): (1) upscale once with lanczos3 when the source long edge is
+// under this threshold, so the target downscale samples from a crisper raster;
+// (2) a mild unsharp mask on the way out.
+const UPSCALE_FLOOR = 2000;
+const SHARPEN = { sigma: 0.8, m1: 1, m2: 2 };
+
 /** Save a transparent PNG, optionally resized to a target width. */
 async function savePNG(img, file, { width } = {}) {
   let pipe = toSharp(img);
+  const longEdge = Math.max(img.width, img.height);
+  if (longEdge < UPSCALE_FLOOR) {
+    // Upscale once (lanczos3) to ~2000px on the long edge before the target
+    // downscale — reduces the re-encoding softness of going straight to size.
+    pipe = pipe.resize({ width: Math.round((UPSCALE_FLOOR / longEdge) * img.width), kernel: "lanczos3" });
+  }
   if (width) {
     pipe = pipe.resize({ width, kernel: "lanczos3" });
   }
+  pipe = pipe.sharpen(SHARPEN);
   await pipe.png({ compressionLevel: 9 }).toFile(path.join(OUT, file));
 }
 
 /** Center the (already trimmed) mark on a square canvas. */
 async function saveSquare(img, file, size, { background = null, padRatio = 0.1 } = {}) {
   const inner = Math.round(size * (1 - padRatio * 2));
-  const resized = await toSharp(img)
+  let pipe = toSharp(img);
+  const longEdge = Math.max(img.width, img.height);
+  if (longEdge < UPSCALE_FLOOR) {
+    pipe = pipe.resize({ width: Math.round((UPSCALE_FLOOR / longEdge) * img.width), kernel: "lanczos3" });
+  }
+  const resized = await pipe
     .resize({ width: inner, height: inner, fit: "contain", kernel: "lanczos3",
       background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .sharpen(SHARPEN)
     .png()
     .toBuffer();
 

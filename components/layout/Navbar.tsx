@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Logo from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Sun, Menu, X, MessageCircle } from "lucide-react";
@@ -11,11 +11,16 @@ import { NAV_LINKS, SITE } from "@/lib/data";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+
+  // next-themes hydration pattern: the resolved theme is unknown on the server
+  // and the first client render, so we hold the icon back until mounted to keep
+  // server/client HTML identical. See FIX 3.
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- next-themes hydration pattern: see https://github.com/pacocoursey/next-themes#avoid-hydration-mismatch
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -34,18 +39,10 @@ export default function Navbar() {
         }`}
       >
         <nav className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center group">
-            <div className="bg-white rounded-xl p-1.5 shadow-sm">
-              <Image
-                src="/logo.png"
-                alt="JOBKREATORS"
-                width={120}
-                height={40}
-                className="h-9 w-auto object-contain"
-                priority
-              />
-            </div>
+          {/* Logo — original-color wordmark seated on a refined cream tile so
+              the brand reads identically on light and dark headers. */}
+          <Link href="/" className="flex items-center group" aria-label="JOBKREATORS home">
+            <Logo variant="wordmark" surface="tile" size={28} priority />
           </Link>
 
           {/* Desktop nav */}
@@ -63,37 +60,41 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            {mounted && (
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                aria-label="Toggle dark mode"
-              >
-                <AnimatePresence mode="wait">
-                  {theme === "dark" ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Sun size={18} className="text-[#F5F5F7]" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Moon size={18} className="text-[#1D1D1F]" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </button>
-            )}
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {/* Stable-sized slot so server/client HTML structure matches; the
+                  icon only renders once the resolved theme is known (mounted). */}
+              <span className="block w-[18px] h-[18px]">
+                {mounted ? (
+                  <AnimatePresence mode="wait">
+                    {resolvedTheme === "dark" ? (
+                      <motion.div
+                        key="sun"
+                        initial={{ rotate: -90, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: 90, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Sun size={18} className="text-[#F5F5F7]" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="moon"
+                        initial={{ rotate: 90, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: -90, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Moon size={18} className="text-[#1D1D1F]" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                ) : null}
+              </span>
+            </button>
 
             <a
               href={`https://wa.me/${SITE.whatsapp.replace("+", "")}`}

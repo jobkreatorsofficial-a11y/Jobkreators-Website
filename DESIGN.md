@@ -10,12 +10,19 @@ analysis, not eyeballed):
 | `--brand-navy`   | `#152A37` | Cube outline, tie, "JOBKREATORS" wordmark     | Dominant ink. Darkest pixel measured `#00121B`. |
 | `--brand-cyan`   | `#5B9FBC` | Tie stripe + "RECRUITMENT AND CONSULTANCY"    | Accent. Most common quantized bucket `#60A8C0`. |
 
-Dark-surface ("light") recolor anchors:
+> **Brand decision (Phase 2):** The original logo is the brand and is **never
+> recolored** in the live site. Earlier notes proposed swapping in a cream +
+> bright-cyan `-light` recolor on dark surfaces; the client rejected that. On
+> dark surfaces the unchanged original logo now sits on a refined cream tile
+> (`<Logo surface="tile" />`). The recolored rasters below still exist in
+> `public/brand/` but are **not used by any component.**
 
-| Token              | Hex       | Replaces        |
-| ------------------ | --------- | --------------- |
-| `--brand-cream`    | `#F4F5F0` | navy ink on dark surfaces |
-| `--brand-cyan-2`   | `#7CD4EC` | brightened cyan for contrast on black |
+Cream brand-tile anchor (and legacy recolor anchors, retained as raster only):
+
+| Token              | Hex       | Use today |
+| ------------------ | --------- | --------- |
+| `--brand-cream`    | `#F4F5F0` | Background of the `surface="tile"` brand stamp on dark surfaces |
+| `--brand-cyan-2`   | `#7CD4EC` | Was the brightened cyan for the `-light` recolor; now UI accent only, not the logo |
 
 > These become the `--brand-*` tokens in Phase 2 (`app/globals.css`). The current
 > stylesheet still uses an unrelated `#0066FF` blue everywhere — Phase 2 replaces
@@ -29,12 +36,12 @@ changes.** Never reference the raw JPEG in a component — always use these PNGs
 
 | File                         | Size       | Purpose |
 | ---------------------------- | ---------- | ------- |
-| `jk-lockup.png`              | 1600×1152  | Full lockup, original navy + cyan, transparent. Light surfaces. |
-| `jk-lockup-light.png`        | 1600×1152  | Full lockup recolored cream + bright cyan. Dark surfaces. |
-| `jk-mark.png`                | 1024×1024  | Symbol only (cube + tie), original colors, transparent. |
-| `jk-mark-light.png`          | 1024×1024  | Symbol only, cream + bright cyan, transparent. |
-| `jk-wordmark.png`            | 1400×259   | Wordmark + tagline only, original colors, transparent. |
-| `jk-wordmark-light.png`      | 1400×259   | Wordmark + tagline, cream + bright cyan, transparent. |
+| `jk-lockup.png`              | 1600×1152  | Full lockup, original navy + cyan, transparent. **Used everywhere** (bare on light, on a cream tile on dark). |
+| `jk-lockup-light.png`        | 1600×1152  | Cream + bright-cyan recolor. **Retained, not used by the live site.** |
+| `jk-mark.png`                | 1024×1024  | Symbol only (cube + tie), original colors, transparent. **Used everywhere.** |
+| `jk-mark-light.png`          | 1024×1024  | Symbol recolor. **Retained, not used by the live site.** |
+| `jk-wordmark.png`            | 1400×259   | Wordmark + tagline only, original colors, transparent. **Used everywhere.** |
+| `jk-wordmark-light.png`      | 1400×259   | Wordmark recolor. **Retained, not used by the live site.** |
 | `jk-mark-512.png`            | 512×512    | Symbol on `--brand-navy`, PWA icon. |
 | `jk-mark-180.png`            | 180×180    | Symbol on navy, Apple touch icon. |
 | `jk-mark-32.png`             | 32×32      | Favicon fallback. |
@@ -89,3 +96,84 @@ If a cleaner result is ever needed without an SVG, the documented fallback is a
 CSS-filter `<Logo variant="light" />` (e.g. `brightness(0) invert(1)` for a flat
 cream silhouette plus a separately-positioned cyan accent), accepting the loss of
 the two-tone treatment.
+
+### Sharpening passes (applied in the generator)
+
+Because the source JPEG is only ~31 KB, every downscale re-encodes soft edges.
+`scripts/generate-brand-assets.mjs` therefore applies two passes after trim +
+alpha conversion, before the final PNG write:
+
+1. **Upscale-then-downscale.** When the trimmed artwork's long edge is below
+   `UPSCALE_FLOOR` (2000px), it is first upscaled to ~2000px with the `lanczos3`
+   kernel, then resized down to the target. Sampling from a crisper raster
+   reduces the softness of going straight to size.
+2. **Unsharp mask.** A mild `.sharpen({ sigma: 0.8, m1: 1, m2: 2 })` on the way
+   out crisps the edges without ringing.
+
+> **Phase 8 ask for the client:** for a truly pixel-perfect logo the client
+> should supply a **clean vector (SVG)**. We would then recolor by swapping fill
+> colors with zero edge ambiguity, and the raster sharpening passes above become
+> unnecessary. Until then, the generated (now sharpened) PNGs are canonical.
+
+## Design system (Phase 2 foundation)
+
+The full token set lives in **one `@theme` block** in `app/globals.css` — this
+is the Tailwind v4 way; there is **no `tailwind.config.js`**. Tokens are emitted
+as `:root` custom properties and, within recognized namespaces (`--color-*`,
+`--text-*`, `--radius-*`, `--shadow-*`, `--font-*`, `--ease-*`), generate the
+matching utilities. The system is **dark-first**: the token values *are* the dark
+palette and apply globally.
+
+- **Color tiers.** `--color-brand-*` are the sacred logo colors. `--color-accent`
+  (`#7CD4EC`), `--color-accent-2` (`#3DC6E8`) and `--color-accent-fg` are the
+  screen-native UI accent, with a full `--color-accent-50…950` ramp for
+  gradients, ring states and glow. Surfaces, borders, text and semantic colors
+  follow. After this phase, **reference tokens, never literal hex.**
+- **Type.** Body = **Inter** (`--font-sans`), display = **Space Grotesk**
+  (`--font-display`), both loaded via `next/font/google` in `app/layout.tsx`. The
+  modular scale (`text-display-2xl` … `text-eyebrow`) carries size, line-height,
+  tracking and weight. Display-tier steps have a `-md` companion token
+  (`text-display-2xl-md`, etc.) for the `md:` scale-up, e.g.
+  `class="text-display-2xl md:text-display-2xl-md"`.
+- **Spacing** uses the Tailwind v4 default scale (4/8/12/16/24/32/48/64/96/128px
+  already map to `1/2/3/4/6/8/12/16/24/32`), so no extension is needed.
+- **Radius / elevation / motion** are tokenized (`--radius-*`, dark-first
+  `--shadow-*` including `--shadow-glow-accent`, and `--duration-*` / `--ease-*`).
+
+### Motion safety — the canonical primitive
+
+`lib/hooks/useMotionSafe.ts` exports **`useMotionSafe()`**, which returns `false`
+when `prefers-reduced-motion: reduce` is set and `true` otherwise (SSR-safe:
+renders `false`, resolves on mount, reacts live to OS changes). **This is the
+canonical motion-safety primitive going forward** — every framer-motion
+component must gate its animation on it:
+
+```tsx
+const motionSafe = useMotionSafe();
+<motion.div animate={motionSafe ? { y: 0 } : false} … />
+```
+
+CSS animations are handled separately by the global
+`@media (prefers-reduced-motion: reduce)` block in `app/globals.css`.
+
+### UI primitives
+
+Every section is built from these (in `components/ui/` unless noted):
+
+- **`<Logo />`** (`components/Logo.tsx`) — the **only** way the logo appears.
+  `variant` mark/wordmark/lockup, `surface` bare/tile (default `bare`), `size`
+  sm/md/lg/xl or a px height, `priority`. **The original logo is the brand:** the
+  component ALWAYS renders the original-color assets (`jk-lockup.png` /
+  `jk-mark.png` / `jk-wordmark.png`) and never recolors. On light surfaces use
+  `surface="bare"`; on dark surfaces use `surface="tile"`, which seats the
+  unchanged logo on a refined cream brand stamp (Stripe/Linear style) — not a
+  giant white card. The recolored `-light` rasters remain in `public/brand/` for
+  possible future use but are **not referenced by the live site.**
+- **`<Button />`** — variants primary/secondary/ghost/link, sizes sm/md/lg,
+  `icon`, `loading`. Primary has a magnetic hover gated on `useMotionSafe()`.
+  (`asChild` is omitted because `@radix-ui/react-slot` is not installed; the
+  component forwards a ref instead.)
+- **`<Section />`** — vertical rhythm (`py-24 md:py-32`) + optional `surface`.
+- **`<Container />`** — `max-w-7xl`, centered, `px-6 md:px-8`, optional `size`.
+- **`<Eyebrow />`** — uppercase label on the `eyebrow` token, optional pulsing
+  accent status dot.
