@@ -1,76 +1,83 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
+import Section from "@/components/ui/Section";
+import Container from "@/components/ui/Container";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Reveal from "@/components/ui/Reveal";
 import { STATS } from "@/lib/data";
+import { useMotionSafe } from "@/lib/hooks/useMotionSafe";
 
-function CountUp({ target, suffix = "", prefix = "" }: { target: number; suffix?: string; prefix?: string }) {
-  const [count, setCount] = useState(0);
+// ease-out-expo — matches the --ease-out-expo token used across the site.
+const easeOutExpo = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+
+type StatProps = { value: number; prefix?: string; suffix?: string };
+
+/**
+ * Stat — renders the REAL value in SSR markup (crucial for SEO + link previews;
+ * the old build shipped 0). On mount, for motion-safe users in view, it runs a
+ * ~1.2s count-up toward the real value. JS-off / reduced-motion → the real value
+ * just sits there.
+ */
+function Stat({ value, prefix = "", suffix = "" }: StatProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
+  const motionSafe = useMotionSafe();
+  const [display, setDisplay] = useState(value); // SSR + first render = real value
 
   useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const duration = 2000;
-    const step = 16;
-    const increment = target / (duration / step);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, step);
-    return () => clearInterval(timer);
-  }, [inView, target]);
+    if (!motionSafe || !inView) return;
+    const duration = 1200;
+    let raf = 0;
+    let startTs = 0;
+    const tick = (ts: number) => {
+      if (!startTs) startTs = ts;
+      const progress = Math.min((ts - startTs) / duration, 1);
+      setDisplay(Math.round(easeOutExpo(progress) * value));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, motionSafe, value]);
 
   return (
-    <span ref={ref}>
-      {prefix}{count.toLocaleString()}{suffix}
+    <span ref={ref} className="tabular-nums">
+      {prefix}
+      {display.toLocaleString("en-IN")}
+      {suffix}
     </span>
   );
 }
 
 export default function StatsBar() {
   return (
-    <section className="py-14 md:py-20 bg-[#F5F5F7] dark:bg-[#0A0A0A] border-y border-black/10 dark:border-white/10">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <p className="text-sm font-medium text-[#0066FF] tracking-widest uppercase mb-2">By the numbers</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1D1D1F] dark:text-white">
+    <Section surface="subtle" className="border-y border-border">
+      <Container>
+        <Reveal className="mb-12 text-center">
+          <Eyebrow className="justify-center">BY THE NUMBERS</Eyebrow>
+          <h2 className="mt-3 font-display text-h1 md:text-h1-md">
             Results that speak for themselves
           </h2>
-        </motion.div>
+        </Reveal>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-black/10 dark:bg-white/10 rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3 lg:grid-cols-6">
           {STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="flex flex-col items-center justify-center gap-1 py-8 px-4 bg-white dark:bg-[#1A1A1A] text-center"
-            >
-              <span className="text-3xl md:text-4xl font-bold text-[#1D1D1F] dark:text-white tabular-nums">
-                <CountUp target={stat.value} suffix={"suffix" in stat ? stat.suffix : ""} />
-              </span>
-              <span className="text-xs font-medium text-[#6E6E73] dark:text-[#A1A1A6] uppercase tracking-wide">
-                {stat.label}
-              </span>
-            </motion.div>
+            <Reveal key={stat.label} delay={i * 0.08}>
+              <div className="flex h-full flex-col items-center justify-center gap-1 bg-surface px-4 py-8 text-center">
+                <span className="font-display text-h1 font-bold text-text">
+                  <Stat
+                    value={stat.value}
+                    prefix={"prefix" in stat ? stat.prefix : ""}
+                    suffix={"suffix" in stat ? stat.suffix : ""}
+                  />
+                </span>
+                <span className="text-caption uppercase text-text-muted">{stat.label}</span>
+              </div>
+            </Reveal>
           ))}
         </div>
-      </div>
-    </section>
+      </Container>
+    </Section>
   );
 }

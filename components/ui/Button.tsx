@@ -10,9 +10,20 @@ import {
 import { Loader2, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useMotionSafe } from "@/lib/hooks/useMotionSafe";
+import {
+  BUTTON_BASE,
+  BUTTON_VARIANTS,
+  BUTTON_SIZES,
+  BUTTON_ICON_SIZE,
+  type ButtonVariant,
+  type ButtonSize,
+} from "@/components/ui/buttonClasses";
 
-type Variant = "primary" | "secondary" | "ghost" | "link";
-type Size = "sm" | "md" | "lg";
+// Re-exported so existing imports from "@/components/ui/Button" keep working.
+export { buttonClasses, BUTTON_ICON_SIZE } from "@/components/ui/buttonClasses";
+
+type Variant = ButtonVariant;
+type Size = ButtonSize;
 
 export type ButtonProps = {
   variant?: Variant;
@@ -24,28 +35,7 @@ export type ButtonProps = {
   children?: React.ReactNode;
 } & Omit<HTMLMotionProps<"button">, "ref" | "children">;
 
-const BASE =
-  "relative inline-flex items-center justify-center gap-2 rounded-full font-medium " +
-  "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-expo)] " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 " +
-  "focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-50";
-
-const VARIANTS: Record<Variant, string> = {
-  primary: "bg-accent text-accent-fg hover:bg-accent-2 shadow-[var(--shadow-glow-accent)]",
-  secondary:
-    "border border-border-strong bg-transparent text-brand-cream hover:bg-surface-2 hover:border-accent",
-  ghost: "bg-transparent text-text hover:bg-surface-2",
-  // `link` underline animates in from the left on hover.
-  link: "group/link bg-transparent px-0 text-accent hover:text-accent-2",
-};
-
-const SIZES: Record<Size, string> = {
-  sm: "h-9 px-3 text-body-sm",
-  md: "h-11 px-5 text-body",
-  lg: "h-12 px-6 text-body-lg",
-};
-
-const ICON_SIZE: Record<Size, number> = { sm: 16, md: 18, lg: 20 };
+const ICON_SIZE = BUTTON_ICON_SIZE;
 
 /**
  * Button — the canonical action primitive. Variants: primary (accent),
@@ -104,7 +94,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={magnetic ? { x: springX, y: springY } : undefined}
-      className={cn(BASE, VARIANTS[variant], SIZES[size], className)}
+      className={cn(BUTTON_BASE, BUTTON_VARIANTS[variant], BUTTON_SIZES[size], className)}
       {...props}
     >
       {loading && <Loader2 className="animate-spin" size={ICON_SIZE[size]} aria-hidden />}

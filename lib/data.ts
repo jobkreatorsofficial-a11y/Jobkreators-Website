@@ -20,6 +20,13 @@ export const STATS = [
   { value: 6, suffix: "+", label: "Years in Business" },
 ] as const;
 
+// NOTE: the homepage `ServicesGrid` keys its icons off `service.id` and renders a
+// single brand accent (no per-card hex). The `icon`/`color` fields below are
+// LEGACY — still consumed only by the inner `/services` page, which is out of
+// scope this pass and will be migrated (and these fields removed) in the
+// inner-page pass. Do not introduce new hardcoded hex on the homepage.
+// TODO(client): if a 6th service is offered, add it here; the grid lays out 1/2/3
+// columns, so adding a 6th balances the last row cleanly.
 export const SERVICES = [
   {
     id: "permanent",
@@ -96,22 +103,32 @@ export const PROCESS = [
   },
 ] as const;
 
+// TODO(client): these are PLACEHOLDERS. The `name`/`avatar` initials (TL/CS/BD)
+// are job titles, not real people — replace with real names + headshots, and move
+// the title into `role`. The client should also supply sharper, outcome-specific
+// quotes, e.g.:
+//   "Hired 12 sales reps in 18 days."
+//   "Filled our entire engineering org in one quarter."
+//   "[Specific outcome metric — e.g. 94% of hires still with us after 12 months]."
 export const TESTIMONIALS = [
   {
     quote: "I am incredibly grateful for the exceptional service provided by JOBKREATORS. Their dedicated team demonstrated unparalleled expertise in matching my skills and aspirations with the perfect job opportunity.",
     name: "Team Leader",
+    role: "Team Leader",
     company: "EduBridge Learning",
     avatar: "TL",
   },
   {
     quote: "From the initial consultation to the final offer, their commitment to excellence was evident. Thanks to their personalized approach and extensive network, I landed a role beyond my expectations.",
     name: "Customer Support Lead",
+    role: "Customer Support Lead",
     company: "Medvarsity",
     avatar: "CS",
   },
   {
     quote: "The personalized guidance and support I received throughout the recruitment process were instrumental in securing a role that perfectly matches my skills and ambitions. JOBKREATORS truly goes above and beyond.",
     name: "Business Development Executive",
+    role: "Business Development Executive",
     company: "Zell Education",
     avatar: "BD",
   },

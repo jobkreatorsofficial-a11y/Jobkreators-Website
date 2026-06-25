@@ -1,5 +1,12 @@
 "use client";
 
+// TODO(cleanup): UNUSED as of the Phase 3 hero rebuild — the hero now ships the
+// `MatchingEngine` signature visual instead of this logo wobble. Kept for possible
+// future use. If it stays unused, this file plus `three`/`@react-three/*` deps and
+// the `transpilePackages: ["three"]` entry in next.config.ts can all be removed.
+// (Despite the name + the `three` transpile config, this component is pure
+// framer-motion and does not actually use three.js / R3F.)
+
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Logo from "@/components/Logo";

@@ -1,81 +1,66 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { Users, Zap, Code2, Briefcase, GraduationCap, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Briefcase, Users, Cpu, TrendingUp, Compass, ArrowRight, type LucideIcon } from "lucide-react";
+import Section from "@/components/ui/Section";
+import Container from "@/components/ui/Container";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Reveal from "@/components/ui/Reveal";
 import { SERVICES } from "@/lib/data";
 
-const iconMap = { Users, Zap, Code2, Briefcase, GraduationCap } as const;
+// Keyed on service.id (not the legacy data `icon` field) so the homepage controls
+// its own iconography in the single brand accent.
+const ICONS_BY_ID: Record<string, LucideIcon> = {
+  permanent: Briefcase,
+  bulk: Users,
+  tech: Cpu,
+  "non-tech": TrendingUp,
+  career: Compass,
+};
 
 export default function ServicesGrid() {
   return (
-    <section className="py-16 md:py-28 bg-white dark:bg-[#0A0A0A]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-10 md:mb-16"
-        >
-          <p className="text-sm font-medium text-[#0066FF] tracking-widest uppercase mb-3">What we do</p>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#1D1D1F] dark:text-white leading-tight max-w-xl">
-              Every hire you need,<br />
-              <span className="gradient-text">one firm to trust.</span>
+    <Section>
+      <Container>
+        <Reveal className="mb-12 md:mb-16">
+          <Eyebrow>WHAT WE DO</Eyebrow>
+          <div className="mt-3 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <h2 className="max-w-xl font-display text-display md:text-display-md">
+              Every hire you need, <span className="text-accent">one firm to trust.</span>
             </h2>
             <Link
               href="/services"
-              className="flex items-center gap-2 text-[#0066FF] font-semibold text-sm hover:gap-3 transition-all"
+              className="group/all inline-flex items-center gap-1.5 text-body-sm font-medium text-accent transition-colors hover:text-accent-2"
             >
-              View all services <ArrowRight size={16} />
+              View all services
+              <ArrowRight size={16} className="transition-transform group-hover/all:translate-x-1" aria-hidden />
             </Link>
           </div>
-        </motion.div>
+        </Reveal>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service, i) => {
-            const Icon = iconMap[service.icon as keyof typeof iconMap];
+            const Icon = ICONS_BY_ID[service.id] ?? Briefcase;
             return (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className={`relative group p-8 rounded-2xl border border-black/10 dark:border-white/10 bg-[#F5F5F7] dark:bg-[#1A1A1A] cursor-pointer overflow-hidden ${
-                  i === 0 ? "md:col-span-2 lg:col-span-1" : ""
-                }`}
-              >
-                {/* Hover glow */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
-                  style={{
-                    background: `radial-gradient(circle at 50% 0%, ${service.color}15 0%, transparent 70%)`,
-                  }}
-                />
-
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-transform duration-200 group-hover:scale-110"
-                  style={{ backgroundColor: `${service.color}15` }}
-                >
-                  <Icon size={22} style={{ color: service.color }} />
+              <Reveal key={service.id} delay={(i % 3) * 0.08}>
+                <div className="group/card flex h-full flex-col rounded-xl border border-border bg-surface p-8 transition-[border-color,box-shadow] duration-[var(--duration-base)] hover:border-accent hover:shadow-[var(--shadow-glow-accent)]">
+                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-surface-2 transition-transform duration-[var(--duration-base)] group-hover/card:scale-105">
+                    <Icon size={22} className="text-accent" aria-hidden />
+                  </div>
+                  <h3 className="mb-3 text-h3 md:text-h3-md">{service.title}</h3>
+                  <p className="mb-6 flex-1 text-body text-text-muted">{service.description}</p>
+                  <Link
+                    href="/services"
+                    className="group/link inline-flex items-center gap-1.5 text-body-sm font-medium text-accent transition-colors hover:text-accent-2"
+                    aria-label={`Learn more about ${service.title}`}
+                  >
+                    Learn more
+                    <ArrowRight size={14} className="transition-transform group-hover/link:translate-x-1" aria-hidden />
+                  </Link>
                 </div>
-
-                <h3 className="text-xl font-semibold text-[#1D1D1F] dark:text-white mb-3">{service.title}</h3>
-                <p className="text-sm text-[#6E6E73] dark:text-[#A1A1A6] leading-relaxed">{service.description}</p>
-
-                <div className="flex items-center gap-1 mt-6 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ color: service.color }}>
-                  Learn more <ArrowRight size={12} />
-                </div>
-              </motion.div>
+              </Reveal>
             );
           })}
         </div>
-      </div>
-    </section>
+      </Container>
+    </Section>
   );
 }

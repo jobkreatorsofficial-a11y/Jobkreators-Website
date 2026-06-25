@@ -1,188 +1,103 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight, MessageCircle, Check } from "lucide-react";
+import Container from "@/components/ui/Container";
+import Eyebrow from "@/components/ui/Eyebrow";
+import { buttonClasses, BUTTON_ICON_SIZE } from "@/components/ui/buttonClasses";
+import MatchingEngine from "@/components/home/MatchingEngine";
 import { SITE } from "@/lib/data";
+import { useMotionSafe } from "@/lib/hooks/useMotionSafe";
 
-const Logo3D = dynamic(() => import("@/components/three/Logo3D"), { ssr: false });
+const whatsappHref = `https://wa.me/${SITE.whatsapp.replace("+", "")}`;
 
-const words = ["Smarter.", "Faster.", "In 72 Hours."];
-
-function AnimatedHeadline() {
-  return (
-    <div className="overflow-hidden">
-      <motion.h1
-        className="text-[2.4rem] leading-[1.1] sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight md:leading-[1.05] text-[#1D1D1F] dark:text-white"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        {/* Wrap each word in whitespace-nowrap so character spans never break mid-word */}
-        <span className="inline-block whitespace-nowrap">
-          {"Hire".split("").map((char, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: 60 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.03, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="inline-block"
-            >
-              {char}
-            </motion.span>
-          ))}
-        </span>
-        <br />
-        {words.map((word, wi) => (
-          <span
-            key={wi}
-            className={`inline-block whitespace-nowrap${wi === words.length - 1 ? " gradient-text" : ""}`}
-          >
-            {word.split("").map((char, ci) => (
-              <motion.span
-                key={ci}
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.5 + (wi * 8 + ci) * 0.025,
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className="inline-block"
-              >
-                {char === " " ? " " : char}
-              </motion.span>
-            ))}
-            {wi < words.length - 1 && " "}
-          </span>
-        ))}
-      </motion.h1>
-    </div>
-  );
-}
+const TRUST = [
+  "90-day free replacement",
+  "100% free for candidates",
+  "Since 2019",
+];
 
 export default function Hero() {
+  const motionSafe = useMotionSafe();
+  // Short, staggered fade-up. Disabled entirely for reduced-motion users.
+  const fade = (delay: number) =>
+    motionSafe
+      ? {
+          initial: { opacity: 0, y: 16 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] as const },
+        }
+      : {};
+
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white dark:bg-[#0A0A0A]">
-      {/* Background grid */}
+    <section className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
+      {/* Ambient accent glow (decorative). */}
       <div
-        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#0066FF 1px, transparent 1px), linear-gradient(90deg, #0066FF 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
+        aria-hidden
+        className="pointer-events-none absolute -top-24 right-0 h-[480px] w-[480px] rounded-full bg-accent/10 blur-[120px]"
       />
 
-      {/* Blue glow */}
-      <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-[#0066FF]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-[#6366F1]/10 rounded-full blur-[100px] pointer-events-none" />
+      <Container className="relative">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-16">
+          {/* Visual — stacks above the text on mobile, sits right on desktop. */}
+          <motion.div className="order-first lg:order-last" {...fade(0.15)}>
+            <MatchingEngine />
+          </motion.div>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-12 md:pt-24 md:pb-16 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Left: Content */}
-          <div className="flex flex-col gap-6 md:gap-8 relative z-10">
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-[#0066FF]/10 border border-[#0066FF]/20"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse" />
-              <span className="text-[#0066FF] text-sm font-medium">Powered by AI · Pan-India</span>
+          {/* Text */}
+          <div className="flex flex-col gap-6 md:gap-7">
+            <motion.div {...fade(0)}>
+              <Eyebrow dot>POWERED BY AI · PAN-INDIA</Eyebrow>
             </motion.div>
 
-            {/* Headline */}
-            <AnimatedHeadline />
-
-            {/* Subline */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.2 }}
-              className="text-base md:text-xl text-[#6E6E73] dark:text-[#A1A1A6] max-w-lg leading-relaxed"
+            <motion.h1
+              {...fade(0.05)}
+              className="max-w-[16ch] font-display text-display-2xl md:text-display-2xl-md"
             >
-              India&apos;s premium recruitment firm. AI-powered matching. 3,400+ placements. 94% fulfillment
-              rate. Trusted by Scaler, upGrad, Great Learning and 240+ more.
+              Hire smarter. Hire faster.{" "}
+              <span className="text-accent">In 72 hours.</span>
+            </motion.h1>
+
+            <motion.p
+              {...fade(0.1)}
+              className="max-w-[56ch] text-body-lg text-text-muted"
+            >
+              India&apos;s premium recruitment firm. AI-powered matching, 3,400+ placements, a 94%
+              fulfillment rate. Trusted by Scaler, upGrad, Great Learning and 240+ more.
             </motion.p>
 
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.4 }}
-              className="flex flex-wrap gap-3"
-            >
-              <Link
-                href="/submit-role"
-                className="relative group flex items-center gap-2 bg-[#0066FF] text-white font-semibold px-6 py-3.5 rounded-full hover:bg-[#004FCC] transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#0066FF]/25"
-              >
-                <span className="absolute inset-0 rounded-full bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-300" />
+            <motion.div {...fade(0.15)} className="flex flex-wrap gap-3">
+              <Link href="/submit-role" className={buttonClasses("primary", "lg")}>
+                <ArrowRight size={BUTTON_ICON_SIZE.lg} aria-hidden />
                 Submit a Role
-                <ArrowRight size={16} />
               </Link>
               <a
-                href={`https://wa.me/${SITE.whatsapp.replace("+", "")}`}
+                href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-transparent border border-[#D2D2D7] dark:border-[#3D3D3D] text-[#1D1D1F] dark:text-white font-semibold px-6 py-3.5 rounded-full hover:border-[#0066FF] hover:text-[#0066FF] transition-all duration-200"
+                className={buttonClasses("secondary", "lg")}
               >
-                <MessageCircle size={16} />
+                <MessageCircle size={BUTTON_ICON_SIZE.lg} aria-hidden />
                 WhatsApp Us
               </a>
             </motion.div>
 
-            {/* Trust micro-line */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 1.8 }}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-[#6E6E73] dark:text-[#6E6E73]"
+            {/* Trust strip */}
+            <motion.ul
+              {...fade(0.2)}
+              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-caption text-text-muted"
             >
-              <span className="flex items-center gap-1">
-                <span className="text-[#0066FF]">✓</span> 90-day free replacement
-              </span>
-              <span className="hidden sm:block w-px h-3 bg-[#D2D2D7] dark:bg-[#3D3D3D]" />
-              <span className="flex items-center gap-1">
-                <span className="text-[#0066FF]">✓</span> 100% free for candidates
-              </span>
-              <span className="hidden sm:block w-px h-3 bg-[#D2D2D7] dark:bg-[#3D3D3D]" />
-              <span className="flex items-center gap-1">
-                <span className="text-[#0066FF]">✓</span> Since 2019
-              </span>
-            </motion.div>
+              {TRUST.map((item) => (
+                <li key={item} className="flex items-center gap-1.5">
+                  <Check size={13} className="text-accent" aria-hidden />
+                  {item}
+                </li>
+              ))}
+            </motion.ul>
           </div>
-
-          {/* Right: 3D Logo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative h-[320px] sm:h-[420px] lg:h-[600px]"
-          >
-            <Logo3D />
-            {/* Glow under 3D */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-12 bg-[#0066FF]/30 blur-2xl rounded-full" />
-          </motion.div>
         </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.2 }}
-          className="hidden md:flex flex-col items-center gap-2 mt-8 text-[#6E6E73]"
-        >
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-            className="w-px h-10 bg-gradient-to-b from-[#0066FF] to-transparent"
-          />
-        </motion.div>
-      </div>
+      </Container>
     </section>
   );
 }

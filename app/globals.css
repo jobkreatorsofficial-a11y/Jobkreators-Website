@@ -48,7 +48,7 @@
   /* ---- Text ------------------------------------------------------------- */
   --color-text: #f4f5f0; /* primary */
   --color-text-muted: #a4b0c0; /* secondary */
-  --color-text-subtle: #6b7888; /* tertiary, captions */
+  --color-text-subtle: #8794a4; /* tertiary, captions — AA ≥4.5:1 on all surfaces */
 
   /* ---- Semantic --------------------------------------------------------- */
   --color-success: #4ade80;

@@ -124,6 +124,12 @@ as `:root` custom properties and, within recognized namespaces (`--color-*`,
 matching utilities. The system is **dark-first**: the token values *are* the dark
 palette and apply globally.
 
+> **Dark-only, no theme switching (Phase 3 decision).** This is a dark-only brand.
+> `next-themes` / `ThemeProvider` were removed, the navbar toggle is gone, and the
+> codebase carries **no `dark:` prefixes** — the tokens apply unconditionally, so
+> there is no `.dark` class and no light palette. Do not reintroduce theme
+> switching or light-mode variants.
+
 - **Color tiers.** `--color-brand-*` are the sacred logo colors. `--color-accent`
   (`#7CD4EC`), `--color-accent-2` (`#3DC6E8`) and `--color-accent-fg` are the
   screen-native UI accent, with a full `--color-accent-50…950` ramp for

@@ -18,14 +18,20 @@ consultancy firm in Agra, India. We are overhauling **UI/UX only**.
 | TypeScript       | `^5`           | `strict: true`, path alias `@/* -> ./*` |
 | Tailwind CSS     | `^4`           | v4, configured in CSS via `@theme` in `app/globals.css` + `@tailwindcss/postcss`. No `tailwind.config.js`. |
 | framer-motion    | `^12.38.0`     | Primary animation lib (used heavily). |
-| next-themes      | `^0.4.6`       | `class` strategy, `defaultTheme="dark"`, system disabled. |
-| three / R3F      | `^0.184` / `@react-three/fiber 9`, `drei 10` | `transpilePackages: ["three"]` in `next.config.ts`. |
+| three / R3F      | `^0.184` / `@react-three/fiber 9`, `drei 10` | `transpilePackages: ["three"]` in `next.config.ts`. Currently unused on the homepage (see `Logo3D` note). |
 | lucide-react     | `^1.16.0`      | Icons. |
 | gsap / @gsap/react | `^3.15` / `^2.1.2` | Available; not yet used. |
 | sharp            | dev dependency | Build-time only, for `scripts/generate-brand-assets.mjs`. |
 
 Fonts: `Inter` via `next/font/google` in `app/layout.tsx`, exposed as
 `--font-inter` and consumed by the Tailwind `--font-sans` token.
+
+> **Dark-only brand (decided Phase 3).** JOBKREATORS is a **dark-only** site by
+> design — there is **no theme switching**. `next-themes` and the `ThemeProvider`
+> were removed, the navbar light/dark toggle is gone, and there are **no `dark:`
+> Tailwind prefixes** anywhere (they were noise on a single-theme site). The
+> design tokens in `app/globals.css` *are* the (dark) palette and apply
+> unconditionally to `:root`; never add a `.dark` class or author a light variant.
 
 ## Commands (locked)
 

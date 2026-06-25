@@ -1,73 +1,57 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+import Section from "@/components/ui/Section";
+import Container from "@/components/ui/Container";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Reveal from "@/components/ui/Reveal";
+import { buttonClasses, BUTTON_ICON_SIZE } from "@/components/ui/buttonClasses";
+
+const TRUST = ["100% free for candidates", "Browse 500+ open roles", "Expert career guidance"];
 
 export default function CandidateCTA() {
   return (
-    <section className="py-20 bg-[#0066FF] relative overflow-hidden">
-      {/* Pattern */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-      <div className="absolute top-0 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+    <Section>
+      <Container>
+        <Reveal>
+          <div className="relative overflow-hidden rounded-2xl border border-border-strong bg-surface-2 px-6 py-14 text-center shadow-[var(--shadow-glow-accent)] md:px-16 md:py-20">
+            {/* Subtle accent glow. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent/10 blur-[120px]"
+            />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-white/70 text-sm font-medium uppercase tracking-widest mb-2">For Job Seekers</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Looking for your dream job?
-            </h2>
-            <div className="flex flex-wrap gap-4 text-white/90 text-sm">
-              {[
-                "100% free for candidates",
-                "Browse 500+ open roles",
-                "Expert career guidance",
-              ].map((item) => (
-                <span key={item} className="flex items-center gap-2">
-                  <CheckCircle2 size={14} />
-                  {item}
-                </span>
-              ))}
+            <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6">
+              <Eyebrow className="justify-center">FOR JOB SEEKERS</Eyebrow>
+              <h2 className="font-display text-display md:text-display-md">
+                Looking for your <span className="text-accent">dream job?</span>
+              </h2>
+              <p className="max-w-[52ch] text-body-lg text-text-muted">
+                Tell us what you&apos;re looking for. Our team — and our AI — will match you with roles
+                that actually fit, and guide you all the way to the offer.
+              </p>
+
+              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-caption text-text-muted">
+                {TRUST.map((item) => (
+                  <li key={item} className="flex items-center gap-1.5">
+                    <Check size={13} className="text-accent" aria-hidden />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                <Link href="/submit-cv" className={buttonClasses("primary", "lg")}>
+                  <ArrowRight size={BUTTON_ICON_SIZE.lg} aria-hidden />
+                  Submit Your CV
+                </Link>
+                <Link href="/jobs" className={buttonClasses("secondary", "lg")}>
+                  Browse Jobs
+                </Link>
+              </div>
             </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto"
-          >
-            <Link
-              href="/submit-cv"
-              className="flex items-center justify-center gap-2 bg-white text-[#0066FF] font-bold px-8 py-4 rounded-full hover:bg-[#F5F5F7] transition-all duration-200 hover:scale-105 shadow-lg"
-            >
-              Submit Your CV
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/jobs"
-              className="flex items-center justify-center gap-2 bg-transparent border-2 border-white text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 transition-all duration-200"
-            >
-              Browse Jobs
-            </Link>
-          </motion.div>
-        </div>
-      </div>
-    </section>
+          </div>
+        </Reveal>
+      </Container>
+    </Section>
   );
 }
