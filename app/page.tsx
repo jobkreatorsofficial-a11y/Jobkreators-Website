@@ -24,7 +24,7 @@ const ORG_SCHEMA = {
       name: "JOBKREATORS",
       legalName: "JOBKREATORS Recruitment and Consultancy",
       url: SITE_URL,
-      logo: `${SITE_URL}/brand/jk-lockup.png`,
+      logo: `${SITE_URL}/brand/jk-lockup-light.png`,
       description:
         "India's premium AI-powered recruitment and consultancy firm. Pan-India hiring experts since 2019.",
       foundingDate: "2019",
@@ -38,7 +38,7 @@ const ORG_SCHEMA = {
       "@id": `${SITE_URL}/#localbusiness`,
       name: "JOBKREATORS",
       url: SITE_URL,
-      image: `${SITE_URL}/brand/jk-lockup.png`,
+      image: `${SITE_URL}/brand/jk-lockup-light.png`,
       email: SITE.email,
       telephone: SITE.phone,
       priceRange: "Free for candidates",

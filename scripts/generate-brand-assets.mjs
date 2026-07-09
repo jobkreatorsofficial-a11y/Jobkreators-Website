@@ -1,6 +1,12 @@
 /**
  * JOBKREATORS — Brand asset generator
  * -----------------------------------
+ * ⚠️ SUPERSEDED as of 2026-07-10 — the client supplied v2 logo assets directly
+ * (high-resolution, original brand colours, transparent PNG, surface-specific
+ * light/dark variants). This script is only relevant if the SOURCE logo changes
+ * and the family needs to be regenerated from a raw JPEG. The live site uses the
+ * client's v2 assets in public/brand/, NOT this script's output.
+ *
  * Source of truth: public/brand/jk-logo-original.jpg (flat JPEG, white bg)
  *
  * This script converts the flat JPEG into a transparent PNG asset family:

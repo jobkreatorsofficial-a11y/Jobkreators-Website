@@ -14,7 +14,8 @@ const ACCENT = "#7CD4EC";
 const MUTED = "#A4B0C0";
 
 export default async function OpengraphImage() {
-  const logo = await readFile(join(process.cwd(), "public/brand/jk-lockup.png"), "base64");
+  // Dark OG card (BG #000000) → the dark-surface (pale/cyan) v2 lockup variant.
+  const logo = await readFile(join(process.cwd(), "public/brand/jk-lockup-dark.png"), "base64");
   const logoSrc = `data:image/png;base64,${logo}`;
 
   return new ImageResponse(

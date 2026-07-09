@@ -59,7 +59,7 @@ const SHORTLIST: Node[] = [
 const SLOTS = [0, 1, 2]; // three concurrent match lines
 
 const STAT_CHIPS = [
-  { value: "500K+", label: "Profiles scanned", pos: "left-3 top-3 md:left-4 md:top-4" },
+  { value: "500K+", label: "Profiles scanned", pos: "left-3 top-11 md:left-4 md:top-12" },
   { value: "94%", label: "Match accuracy", pos: "right-3 top-1/2 -translate-y-1/2 md:right-4" },
   { value: "24h", label: "Avg shortlist time", pos: "bottom-3 right-3 md:bottom-4 md:right-4" },
 ] as const;
@@ -111,11 +111,38 @@ export default function MatchingEngine() {
   return (
     <div
       ref={containerRef}
-      className="relative mx-auto w-full max-w-[460px] rounded-2xl border border-border-strong bg-surface-2 p-4 shadow-[var(--shadow-glow-accent)] md:p-6"
+      className="relative mx-auto w-full max-w-[460px] rounded-2xl border border-border-strong bg-surface p-4 shadow-[var(--shadow-lg)] [--me-node-bump:1px] md:p-6 dark:bg-surface-2 dark:shadow-[var(--shadow-glow-accent)] dark:[--me-node-bump:0px]"
     >
+      {/* Technical dot-grid texture — LIGHT only; gives the white card surface
+          character (Vercel-style). Invisible on the dark glowing card. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 rounded-2xl dark:hidden"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, var(--color-brand-navy) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+          opacity: 0.03,
+        }}
+      />
+
+      {/* LIVE status row — signals a live system, not a static diagram. The dot
+          pulse is gated on motion-safety. */}
+      <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5">
+        <span className="relative inline-flex h-1.5 w-1.5" aria-hidden>
+          {motionSafe && (
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-bright opacity-75" />
+          )}
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-bright" />
+        </span>
+        <span className="text-[10px] font-medium uppercase tracking-tight text-text-subtle">
+          Live matching
+        </span>
+      </div>
+
       <svg
         viewBox={`0 0 ${VIEW} ${VIEW}`}
-        className="h-auto w-full"
+        className="relative z-10 h-auto w-full"
         role="img"
         aria-label="AI matching engine visualization: candidate profiles being matched into a shortlist"
       >
@@ -159,6 +186,7 @@ export default function MatchingEngine() {
               stroke="var(--color-accent)"
               strokeWidth={1}
               strokeLinecap="round"
+              className="[stroke-width:1.5px] dark:[stroke-width:1px]"
               initial={{ pathLength: 0, opacity: 0.85 }}
               animate={{ pathLength: 1, opacity: [0.85, 0.85, 0] }}
               transition={{ duration: 1.4, times: [0, 0.57, 1], ease: [0.16, 1, 0.3, 1] }}
@@ -174,7 +202,7 @@ export default function MatchingEngine() {
               stroke="var(--color-accent)"
               strokeWidth={1}
               strokeLinecap="round"
-              opacity={0.5}
+              className="opacity-60 [stroke-width:1.5px] dark:opacity-50 dark:[stroke-width:1px]"
             />
           ),
         )}
@@ -188,12 +216,20 @@ export default function MatchingEngine() {
               cy={n.y}
               r={n.r}
               fill="var(--color-text-subtle)"
+              style={{ r: `calc(${n.r}px + var(--me-node-bump, 0px))` }}
               initial={{ x: 0, y: 0 }}
               animate={{ x: [0, n.driftX, 0], y: [0, n.driftY, 0] }}
               transition={{ duration: n.dur, ease: "easeInOut", repeat: Infinity }}
             />
           ) : (
-            <circle key={`c-${i}`} cx={n.x} cy={n.y} r={n.r} fill="var(--color-text-subtle)" />
+            <circle
+              key={`c-${i}`}
+              cx={n.x}
+              cy={n.y}
+              r={n.r}
+              fill="var(--color-text-subtle)"
+              style={{ r: `calc(${n.r}px + var(--me-node-bump, 0px))` }}
+            />
           ),
         )}
 
@@ -205,14 +241,24 @@ export default function MatchingEngine() {
                 cx={n.x}
                 cy={n.y}
                 r={n.r}
-                fill="var(--color-accent-bright)"
+                fill="var(--color-accent)"
+                className="drop-shadow-[0_1px_1.5px_rgba(21,42,55,0.35)] dark:drop-shadow-none"
                 initial={{ opacity: 0.5 }}
                 animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.12, 1] }}
                 transition={{ duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: i * 0.25 }}
-                style={{ transformOrigin: `${n.x}px ${n.y}px` }}
+                style={{ transformOrigin: `${n.x}px ${n.y}px`, r: `calc(${n.r}px + var(--me-node-bump, 0px))` }}
               />
             )}
-            {!animating && <circle cx={n.x} cy={n.y} r={n.r} fill="var(--color-accent-bright)" />}
+            {!animating && (
+              <circle
+                cx={n.x}
+                cy={n.y}
+                r={n.r}
+                fill="var(--color-accent)"
+                className="drop-shadow-[0_1px_1.5px_rgba(21,42,55,0.35)] dark:drop-shadow-none"
+                style={{ r: `calc(${n.r}px + var(--me-node-bump, 0px))` }}
+              />
+            )}
           </g>
         ))}
       </svg>
@@ -223,7 +269,7 @@ export default function MatchingEngine() {
       {STAT_CHIPS.map((chip) => (
         <div
           key={chip.label}
-          className={`absolute ${chip.pos} rounded-xl border border-border-strong bg-surface px-3 py-2 shadow-[var(--shadow-md)] dark:border-border dark:bg-surface-3`}
+          className={`absolute z-20 ${chip.pos} rounded-xl border border-border-strong bg-surface px-3 py-2 shadow-[var(--shadow-md)] dark:border-border dark:bg-surface-3`}
         >
           <div className="text-h4 font-display font-bold text-accent">{chip.value}</div>
           <div className="text-caption text-text-muted">{chip.label}</div>
