@@ -28,9 +28,11 @@ export default function Eyebrow({
       )}
     >
       {dot && (
+        // Bright-cyan "pop" tier in BOTH themes — small enough to read as a live
+        // signal on light; identical to the accent on dark.
         <span className="relative inline-flex h-1.5 w-1.5 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-bright opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-bright" />
         </span>
       )}
       {children}

@@ -205,23 +205,25 @@ export default function MatchingEngine() {
                 cx={n.x}
                 cy={n.y}
                 r={n.r}
-                fill="var(--color-accent)"
+                fill="var(--color-accent-bright)"
                 initial={{ opacity: 0.5 }}
                 animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.12, 1] }}
                 transition={{ duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: i * 0.25 }}
                 style={{ transformOrigin: `${n.x}px ${n.y}px` }}
               />
             )}
-            {!animating && <circle cx={n.x} cy={n.y} r={n.r} fill="var(--color-accent)" />}
+            {!animating && <circle cx={n.x} cy={n.y} r={n.r} fill="var(--color-accent-bright)" />}
           </g>
         ))}
       </svg>
 
-      {/* Floating stat chips */}
+      {/* Floating stat chips — intentional cards in both themes: white + strong
+          border on light (pops on the cream panel), raised surface-3 + subtle
+          border on dark. */}
       {STAT_CHIPS.map((chip) => (
         <div
           key={chip.label}
-          className={`absolute ${chip.pos} rounded-xl border border-border bg-surface-3 px-3 py-2 shadow-[var(--shadow-md)]`}
+          className={`absolute ${chip.pos} rounded-xl border border-border-strong bg-surface px-3 py-2 shadow-[var(--shadow-md)] dark:border-border dark:bg-surface-3`}
         >
           <div className="text-h4 font-display font-bold text-accent">{chip.value}</div>
           <div className="text-caption text-text-muted">{chip.label}</div>

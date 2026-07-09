@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import ThemeProvider from "@/components/ui/ThemeProvider";
 import "./globals.css";
 
 // Body font.
@@ -52,18 +53,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Dark-only brand: tokens in globals.css apply unconditionally, so no theme
-    // class or provider is needed (next-themes was removed by design).
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    // Dual-theme brand (light default, dark alternative). next-themes writes
+    // data-theme on <html> via a pre-paint script, so suppressHydrationWarning is
+    // required here; the token system in globals.css swaps on that attribute.
+    <html
+      lang="en"
+      className={`${inter.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen antialiased">
-        {/* Skip link — visible only on keyboard focus, jumps to <main id="main">. */}
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-surface-2 focus:px-4 focus:py-2 focus:text-body-sm focus:text-text focus:shadow-[var(--shadow-lg)] focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          Skip to content
-        </a>
-        {children}
+        <ThemeProvider>
+          {/* Skip link — visible only on keyboard focus, jumps to <main id="main">. */}
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-surface-2 focus:px-4 focus:py-2 focus:text-body-sm focus:text-text focus:shadow-[var(--shadow-lg)] focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            Skip to content
+          </a>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -59,16 +59,17 @@ export default function Logo3D() {
             style={{ transformStyle: "preserve-3d" }}
             className="relative w-64 h-64 lg:w-80 lg:h-80 flex items-center justify-center"
           >
-            {/* Front face — the refined cream brand tile carries the original
-                navy/cyan mark (surface="tile"); the wobble lifts it in 3D. The
-                heavy drop shadow follows the tile's rounded shape. */}
+            {/* Front face — the original navy/cyan mark; the wobble lifts it in 3D.
+                The Logo now auto-tiles by theme (cream stamp on dark, bare on
+                light), so the `surface` prop is gone. The heavy drop shadow
+                follows the mark's shape. */}
             <div
               style={{
                 transform: "translateZ(20px)",
                 filter: "drop-shadow(0 32px 80px rgba(0,0,0,0.55))",
               }}
             >
-              <Logo variant="mark" surface="tile" size={180} priority />
+              <Logo variant="mark" size={180} priority />
             </div>
           </motion.div>
         </motion.div>

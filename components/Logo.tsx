@@ -2,16 +2,10 @@ import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 type Variant = "mark" | "wordmark" | "lockup";
-type Surface = "bare" | "tile";
 type NamedSize = "sm" | "md" | "lg" | "xl";
 
 type LogoProps = {
   variant?: Variant;
-  /**
-   * "bare" renders the logo directly on the surface (use on light surfaces).
-   * "tile" wraps it in a refined cream brand stamp (use on dark surfaces).
-   */
-  surface?: Surface;
   /** Named height token or an explicit height in px. */
   size?: NamedSize | number;
   priority?: boolean;
@@ -39,14 +33,18 @@ const NAMED_HEIGHTS: Record<NamedSize, number> = {
 /**
  * Logo — the ONLY way the JOBKREATORS logo appears anywhere on the site.
  * ALWAYS renders the original-color trimmed transparent PNGs (navy mark + navy
- * wordmark + cyan tagline). The recolored "-light" rasters stay in
- * public/brand/ for future use but are never referenced here — the brand
- * identity is not recolored. On dark surfaces, pass surface="tile" to seat the
- * logo on a refined cream brand stamp instead of recoloring it.
+ * wordmark + cyan tagline); the brand identity is never recolored.
+ *
+ * The cream brand tile is now AUTOMATIC and theme-driven, with no client JS:
+ *   - LIGHT theme → the logo sits bare on the warm-white page (a cream tile on
+ *     a cream-ish page would only compete), so the wrapper is invisible.
+ *   - DARK theme  → `dark:` utilities seat the unchanged logo on a refined cream
+ *     stamp (Stripe/Linear style), NOT a giant white card.
+ * Because this is pure CSS keyed on <html data-theme>, SSR is correct in both
+ * themes and there is no mount-time flicker or layout shift on hydration.
  */
 export default function Logo({
   variant = "lockup",
-  surface = "bare",
   size = "md",
   priority = false,
   className,
@@ -55,43 +53,43 @@ export default function Logo({
   const heightPx = typeof size === "number" ? size : NAMED_HEIGHTS[size];
   const widthPx = Math.round((w / h) * heightPx);
 
-  // Original colors, always. No theme/surface branching on the asset.
+  // Original colors, always. No theme/surface branching on the asset itself.
   const file = `/brand/jk-${variant}.png`;
 
-  const img = (
-    <Image
-      src={file}
-      alt="JOBKREATORS"
-      width={w}
-      height={h}
-      quality={95}
-      priority={priority}
-      sizes={`${widthPx}px`}
-      style={{ height: heightPx, width: "auto" }}
-      className={cn("object-contain select-none", surface === "bare" && className)}
-    />
-  );
-
-  if (surface === "bare") return img;
-
-  // "tile" — a deliberate cream brand stamp for dark surfaces (Stripe/Linear
-  // style), NOT a giant white card. Padding scales with the logo height; larger
-  // logos get the softer xl radius.
+  // Tile geometry (applied only in dark via dark:* below). Padding scales with the
+  // logo height; larger logos get the softer xl radius. Passed as CSS vars so the
+  // dark-only utilities can consume per-instance values.
   const pad = Math.round(heightPx * 0.08);
   const radius = heightPx >= NAMED_HEIGHTS.lg ? "var(--radius-xl)" : "var(--radius-lg)";
 
   return (
     <span
-      className={cn("inline-flex items-center justify-center", className)}
-      style={{
-        background: "#F4F5F0",
-        borderRadius: radius,
-        border: "1px solid rgba(21, 42, 55, 0.08)",
-        boxShadow: "var(--shadow-sm)",
-        padding: pad,
-      }}
+      className={cn(
+        "inline-flex items-center justify-center",
+        // Dark-only cream brand tile. In light these utilities are inert and the
+        // wrapper has zero padding/background → effectively bare.
+        "dark:bg-brand-cream dark:p-[var(--logo-pad)] dark:rounded-[var(--logo-radius)]",
+        "dark:border dark:border-[color:rgba(21,42,55,0.08)] dark:shadow-[var(--shadow-sm)]",
+        className,
+      )}
+      style={
+        {
+          "--logo-pad": `${pad}px`,
+          "--logo-radius": radius,
+        } as React.CSSProperties
+      }
     >
-      {img}
+      <Image
+        src={file}
+        alt="JOBKREATORS"
+        width={w}
+        height={h}
+        quality={95}
+        priority={priority}
+        sizes={`${widthPx}px`}
+        style={{ height: heightPx, width: "auto" }}
+        className="object-contain select-none"
+      />
     </span>
   );
 }

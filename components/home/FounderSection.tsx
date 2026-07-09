@@ -15,10 +15,10 @@ export default function FounderSection() {
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Photo */}
           <Reveal className="relative mx-auto w-full max-w-sm lg:max-w-md">
-            {/* Accent glow halo behind the frame. */}
+            {/* Accent glow halo behind the frame — softer on light. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-accent/15 blur-3xl"
+              className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-accent/10 blur-3xl dark:bg-accent/15"
             />
             <div
               className="relative overflow-hidden rounded-2xl border border-border-strong bg-surface-2"

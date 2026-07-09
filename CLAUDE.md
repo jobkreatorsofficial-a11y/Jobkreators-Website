@@ -26,12 +26,33 @@ consultancy firm in Agra, India. We are overhauling **UI/UX only**.
 Fonts: `Inter` via `next/font/google` in `app/layout.tsx`, exposed as
 `--font-inter` and consumed by the Tailwind `--font-sans` token.
 
-> **Dark-only brand (decided Phase 3).** JOBKREATORS is a **dark-only** site by
-> design — there is **no theme switching**. `next-themes` and the `ThemeProvider`
-> were removed, the navbar light/dark toggle is gone, and there are **no `dark:`
-> Tailwind prefixes** anywhere (they were noise on a single-theme site). The
-> design tokens in `app/globals.css` *are* the (dark) palette and apply
-> unconditionally to `:root`; never add a `.dark` class or author a light variant.
+> **Dual-theme brand — LIGHT is the default, DARK is the alternative (decided
+> Phase 7, reversing the earlier dark-only call).** The client's collateral
+> (LinkedIn, decks, cards) lives on light surfaces, so light is canonical and
+> dark is the deliberate alternative. `next-themes` is back, configured with
+> `attribute="data-theme"`, `defaultTheme="light"`, `enableSystem={false}`
+> (a brand Sun/Moon toggle in the navbar, NOT an OS-follower),
+> `disableTransitionOnChange`. Token architecture (Tailwind v4):
+>
+> - **`@theme`** in `app/globals.css` declares every `--color-*`/`--shadow-*`
+>   token with its **LIGHT** value (so the utilities generate and the default
+>   cascade is light) plus the theme-invariant scale/radius/motion/fonts.
+> - **`:root[data-theme="dark"]`** overrides only the swapping color + elevation
+>   tokens with their dark values (the previous dark-only palette — unchanged).
+> - A **`@custom-variant dark (&:where([data-theme="dark"], …))`** makes Tailwind
+>   `dark:` utilities respond to **our toggle**, not `prefers-color-scheme`. Use
+>   `dark:` sparingly — only where a treatment genuinely diverges (navbar blur
+>   depth, matching-engine stat chips, `.glass`, the logo tile).
+>
+> **Accent is theme-split:** light `--color-accent` is a **deeper** cyan
+> `#1C7C99` (the bright `#7CD4EC` washes out on white; `#1C7C99` also clears WCAG
+> AA both as small text on `--color-bg` (4.56:1) and as white-on-accent fill
+> (4.77:1)); dark `--color-accent` stays bright `#7CD4EC`. A shared
+> **`--color-accent-bright` `#7CD4EC`** pop tier is used in BOTH themes for small
+> live signals (eyebrow dot, match-pulse). **Elevation** is dual: soft
+> navy-tinted shadows on light, rgba-black + inner-highlight on dark. Never add a
+> `.dark` class or hardcode a hex once tokens exist; reference tokens so both
+> themes follow automatically.
 
 ## Commands (locked)
 
@@ -70,16 +91,20 @@ node scripts/generate-brand-assets.mjs   # regenerate brand PNGs from the JPEG
 The logo asset family in `public/brand/` is **canonical**. See `DESIGN.md` for the
 full table, measured colors, and how the assets are produced.
 
+- **Always render the logo via `<Logo>` (`components/Logo.tsx`)** — never an ad-hoc
+  `<Image>`. The component owns the asset + the theme-aware tile.
 - **Never use `jk-logo-original.jpg` in a component.** It is the source only.
-- **Never use the legacy `public/logo.png`** (a white-background lockup). It is
-  what currently forces the "logo on a white card" anti-pattern.
-- **Always use the trimmed transparent PNGs:**
-  - On light surfaces → `jk-lockup.png` / `jk-mark.png` / `jk-wordmark.png`
-  - On dark surfaces → `jk-lockup-light.png` / `jk-mark-light.png` / `jk-wordmark-light.png`
-- **Never put the logo on a white card on a dark page.** Use the `-light` variant
-  directly on the dark surface instead.
+- **Never use the legacy `public/logo.png`** (a white-background lockup).
+- **`<Logo>` always renders the ORIGINAL-color trimmed PNGs** (`jk-lockup.png` /
+  `jk-mark.png` / `jk-wordmark.png`) — the brand is never recolored. The `-light`
+  recolored rasters in `public/brand/` remain unused.
+- **The cream tile is now AUTOMATIC and theme-driven (no `surface` prop).** In
+  **light** the logo sits **bare** on the warm-white page; in **dark** `dark:`
+  utilities seat it on the refined cream brand stamp. This is pure CSS keyed on
+  `<html data-theme>`, so it is SSR-correct and never flickers. Never put the logo
+  on a white card on a dark page — the auto-tile handles dark.
 - Measured brand anchors: `--brand-navy #152A37`, `--brand-cyan #5B9FBC`,
-  dark-surface `--brand-cream #F4F5F0`, `--brand-cyan-2 #7CD4EC`.
+  `--brand-cream #F4F5F0`, bright `--accent-bright #7CD4EC`.
 - If the client ever updates the source logo, drop the new JPEG at
   `public/brand/jk-logo-original.jpg` and re-run
   `node scripts/generate-brand-assets.mjs` to regenerate the whole family.

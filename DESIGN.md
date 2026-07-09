@@ -10,12 +10,14 @@ analysis, not eyeballed):
 | `--brand-navy`   | `#152A37` | Cube outline, tie, "JOBKREATORS" wordmark     | Dominant ink. Darkest pixel measured `#00121B`. |
 | `--brand-cyan`   | `#5B9FBC` | Tie stripe + "RECRUITMENT AND CONSULTANCY"    | Accent. Most common quantized bucket `#60A8C0`. |
 
-> **Brand decision (Phase 2):** The original logo is the brand and is **never
-> recolored** in the live site. Earlier notes proposed swapping in a cream +
-> bright-cyan `-light` recolor on dark surfaces; the client rejected that. On
-> dark surfaces the unchanged original logo now sits on a refined cream tile
-> (`<Logo surface="tile" />`). The recolored rasters below still exist in
-> `public/brand/` but are **not used by any component.**
+> **Brand decision (Phase 2, mechanism updated Phase 7):** The original logo is
+> the brand and is **never recolored** in the live site. Earlier notes proposed
+> swapping in a cream + bright-cyan `-light` recolor on dark surfaces; the client
+> rejected that. The unchanged original logo sits **bare on light surfaces** and
+> on a **refined cream tile on dark surfaces** — now applied **automatically by
+> theme** via `dark:` utilities inside `<Logo>` (the `surface` prop was removed in
+> Phase 7). The recolored rasters below still exist in `public/brand/` but are
+> **not used by any component.**
 
 Cream brand-tile anchor (and legacy recolor anchors, retained as raster only):
 
@@ -121,14 +123,42 @@ The full token set lives in **one `@theme` block** in `app/globals.css` — this
 is the Tailwind v4 way; there is **no `tailwind.config.js`**. Tokens are emitted
 as `:root` custom properties and, within recognized namespaces (`--color-*`,
 `--text-*`, `--radius-*`, `--shadow-*`, `--font-*`, `--ease-*`), generate the
-matching utilities. The system is **dark-first**: the token values *are* the dark
-palette and apply globally.
+matching utilities (each utility compiles to `var(--token)`).
 
-> **Dark-only, no theme switching (Phase 3 decision).** This is a dark-only brand.
-> `next-themes` / `ThemeProvider` were removed, the navbar toggle is gone, and the
-> codebase carries **no `dark:` prefixes** — the tokens apply unconditionally, so
-> there is no `.dark` class and no light palette. Do not reintroduce theme
-> switching or light-mode variants.
+> **Dual-theme — LIGHT default, DARK alternative (Phase 7, reversing the Phase 3
+> dark-only decision).** The client's brand collateral lives on light surfaces, so
+> light is canonical and dark is the deliberate alternative. `next-themes` drives
+> a `data-theme` attribute on `<html>` (`defaultTheme="light"`,
+> `enableSystem={false}` — a brand Sun/Moon toggle, not OS-following,
+> `disableTransitionOnChange`).
+>
+> **How the swap works in Tailwind v4** (the key detail: color utilities only
+> generate from `--color-*` declared **inside `@theme`**, and each compiles to
+> `var(--token)`, so a token's *value* can be overridden at runtime):
+>
+> 1. **`@theme`** holds every token with its **LIGHT** value — the default cascade
+>    is light, and all utilities exist.
+> 2. **`:root[data-theme="dark"]`** overrides only the swapping color + elevation
+>    tokens with their dark values (the previous dark-only palette, unchanged — so
+>    dark cannot regress).
+> 3. **`@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *))`**
+>    makes `dark:` utilities respond to the toggle (not `prefers-color-scheme`).
+>    Used sparingly: navbar blur depth, matching-engine stat chips, `.glass`, the
+>    logo tile.
+>
+> **Accent is theme-split.** Light `--color-accent = #1C7C99` (a deeper cyan —
+> bright `#7CD4EC` washes out on white; `#1C7C99` clears WCAG AA both as small
+> text on `--color-bg` `#FAFAF7` at **4.56:1** and as white-on-accent fill at
+> **4.77:1**). Dark `--color-accent = #7CD4EC` (bright). A shared
+> **`--color-accent-bright = #7CD4EC`** "pop" tier is used in BOTH themes for
+> small live signals (eyebrow status dot, match-line pulse, shortlist cluster).
+>
+> **Elevation is dual.** Light shadows are soft navy-tinted
+> (`rgba(21,42,55,…)`, no inner highlight); dark shadows are rgba-black with an
+> `inset` white highlight. `--shadow-glow-accent` is accent-tinted per theme.
+>
+> **Light text-subtle** was set to `#616D7B` (5.0:1 on `--color-bg`); the warmer
+> `#6F7A88` measured only 4.18:1 and failed AA.
 
 - **Color tiers.** `--color-brand-*` are the sacred logo colors. `--color-accent`
   (`#7CD4EC`), `--color-accent-2` (`#3DC6E8`) and `--color-accent-fg` are the
@@ -167,14 +197,17 @@ CSS animations are handled separately by the global
 Every section is built from these (in `components/ui/` unless noted):
 
 - **`<Logo />`** (`components/Logo.tsx`) — the **only** way the logo appears.
-  `variant` mark/wordmark/lockup, `surface` bare/tile (default `bare`), `size`
-  sm/md/lg/xl or a px height, `priority`. **The original logo is the brand:** the
-  component ALWAYS renders the original-color assets (`jk-lockup.png` /
-  `jk-mark.png` / `jk-wordmark.png`) and never recolors. On light surfaces use
-  `surface="bare"`; on dark surfaces use `surface="tile"`, which seats the
-  unchanged logo on a refined cream brand stamp (Stripe/Linear style) — not a
-  giant white card. The recolored `-light` rasters remain in `public/brand/` for
-  possible future use but are **not referenced by the live site.**
+  `variant` mark/wordmark/lockup, `size` sm/md/lg/xl or a px height, `priority`.
+  **The original logo is the brand:** the component ALWAYS renders the
+  original-color assets (`jk-lockup.png` / `jk-mark.png` / `jk-wordmark.png`) and
+  never recolors. **The cream tile is now AUTOMATIC and theme-driven — the old
+  `surface` prop is gone.** In **light** the logo sits bare on the warm-white
+  page; in **dark**, `dark:` utilities seat it on a refined cream brand stamp
+  (Stripe/Linear style), with per-instance padding/radius passed as CSS vars
+  (`--logo-pad`/`--logo-radius`). Because it is pure CSS keyed on
+  `<html data-theme>`, the component stays a **Server Component** — SSR-correct in
+  both themes, no `useTheme`, no mount flicker, no layout shift. The recolored
+  `-light` rasters remain in `public/brand/` but are **not referenced.**
 - **`<Button />`** — variants primary/secondary/ghost/link, sizes sm/md/lg,
   `icon`, `loading`. Primary has a magnetic hover gated on `useMotionSafe()`.
   (`asChild` is omitted because `@radix-ui/react-slot` is not installed; the

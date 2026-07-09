@@ -14,10 +14,10 @@ export default function CandidateCTA() {
       <Container>
         <Reveal>
           <div className="relative overflow-hidden rounded-2xl border border-border-strong bg-surface-2 px-6 py-14 text-center shadow-[var(--shadow-glow-accent)] md:px-16 md:py-20">
-            {/* Subtle accent glow. */}
+            {/* Subtle accent glow — fainter on light so it reads as a tint, not a smudge. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent/10 blur-[120px]"
+              className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent/[0.07] blur-[120px] dark:bg-accent/10"
             />
 
             <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6">

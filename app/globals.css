@@ -1,59 +1,77 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   JOBKREATORS DESIGN SYSTEM — Phase 2 foundation
-   Tailwind v4: every design token lives in this single @theme block (there is
-   NO tailwind.config.js). Tokens here are emitted as CSS custom properties on
-   :root AND, where they sit in a recognized namespace (--color-*, --text-*,
-   --radius-*, --shadow-*, --font-*, --ease-*), generate the matching utilities.
+   JOBKREATORS DESIGN SYSTEM — dual-theme foundation
+   Tailwind v4 (NO tailwind.config.js). The single @theme block below declares
+   every token; names in a recognized namespace (--color-*, --text-*, --radius-*,
+   --shadow-*, --font-*, --ease-*) ALSO generate the matching utilities, and v4
+   utilities compile to var(--token) — so a token's VALUE can be swapped at
+   runtime by overriding the variable under a more specific selector.
+
+   THEMING. The site is dual-theme: LIGHT is the default, DARK is the alternative.
+   Color + elevation tokens carry their LIGHT values here in @theme (so the
+   utilities exist and the default cascade is light); the
+   `:root[data-theme="dark"]` block further down overrides only the swapping
+   tokens with their dark values. next-themes writes data-theme on <html>.
    Brand colors are MEASURED from the logo — see DESIGN.md. Do not invent hex.
    ========================================================================== */
+
+/* `dark:` utilities respond to our data-theme attribute, NOT prefers-color-scheme.
+   Used sparingly for the few treatments that genuinely diverge per theme
+   (navbar blur depth, matching-engine stat chips, glass, the logo tile). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   /* ---- Fonts ------------------------------------------------------------ */
   --font-sans: var(--font-inter);
   --font-display: var(--font-space-grotesk);
 
-  /* ---- Brand colors (sacred — match the logo lockup) -------------------- */
+  /* ---- Brand colors (sacred — identical in both themes) ----------------- */
   --color-brand-navy: #152a37; /* logo navy ink */
   --color-brand-cyan: #5b9fbc; /* logo cyan accent (tie + tagline) */
-  --color-brand-cream: #f4f5f0; /* cream for dark surfaces */
+  --color-brand-cream: #f4f5f0; /* cream — logo tile on dark surfaces */
 
-  /* ---- UI accent (screen-native tier, promoted from the recolor) -------- */
-  --color-accent: #7cd4ec; /* bright cyan — CTAs, AI moments, live data */
-  --color-accent-2: #3dc6e8; /* deeper hover/active state */
-  --color-accent-fg: #001318; /* legible text on accent */
+  /* ---- UI accent — LIGHT values (deep cyan: bright washes out on white) -- */
+  /* #1C7C99 clears WCAG AA both as small text on --color-bg (4.56:1) and as
+     white-on-accent button fill (4.77:1); see DESIGN.md. Dark overrides below. */
+  --color-accent: #1c7c99; /* CTAs, AI moments, accent text/lines */
+  --color-accent-2: #1f7090; /* deeper hover/active state */
+  --color-accent-fg: #ffffff; /* legible text on accent */
+  /* Bright-cyan "pop" tier — SAME in both themes. For small signals where pop
+     beats weight (eyebrow dot, live match pulse) even on light. */
+  --color-accent-bright: #7cd4ec;
 
-  /* ---- Accent ramp 50–950 (gradients, ring states, glow) ---------------- */
-  --color-accent-50: #ecfbfe;
-  --color-accent-100: #cff4fb;
-  --color-accent-200: #a6eaf7;
-  --color-accent-300: #7cd4ec; /* == --color-accent */
-  --color-accent-400: #5ccdea;
-  --color-accent-500: #3dc6e8; /* == --color-accent-2 */
-  --color-accent-600: #22a6cc;
-  --color-accent-700: #1a82a3;
-  --color-accent-800: #186a85;
-  --color-accent-900: #18596f;
-  --color-accent-950: #0a3a4a;
+  /* ---- Accent ramp 50–950 — LIGHT (gradients, ring states, glow) -------- */
+  --color-accent-50: #f0f9fc;
+  --color-accent-100: #d9eff6;
+  --color-accent-200: #b4e0ec;
+  --color-accent-300: #86cce0;
+  --color-accent-400: #51b0cd;
+  --color-accent-500: #2c93b3;
+  --color-accent-600: #1c7c99; /* == --color-accent (light) */
+  --color-accent-700: #195f76;
+  --color-accent-800: #184f61;
+  --color-accent-900: #184151;
+  --color-accent-950: #0c2935;
 
-  /* ---- Surfaces (dark-first) -------------------------------------------- */
-  --color-bg: #000000; /* page background */
-  --color-surface: #0a0f14; /* panels, cards */
-  --color-surface-2: #121922; /* raised panels, modals */
-  --color-surface-3: #1a2330; /* highest elevation */
-  --color-border: #1f2a38; /* default borders */
-  --color-border-strong: #2c3a4d; /* emphasized borders */
-  --color-ring: #7cd4ec; /* focus ring = accent */
+  /* ---- Surfaces — LIGHT (warm off-white, not pure #FFF, reads premium) --- */
+  --color-bg: #fafaf7; /* page background — warm off-white */
+  --color-surface: #ffffff; /* cards, panels — pure white pops on bg */
+  --color-surface-2: #f4f5f0; /* raised panels — brand cream */
+  --color-surface-3: #ecede6; /* highest elevation — slightly cooler */
+  --color-border: #e4e6de; /* default borders */
+  --color-border-strong: #c9cdc0; /* emphasized borders */
+  --color-ring: #5b9fbc; /* focus ring = brand cyan (pops on white) */
 
-  /* ---- Text ------------------------------------------------------------- */
-  --color-text: #f4f5f0; /* primary */
-  --color-text-muted: #a4b0c0; /* secondary */
-  --color-text-subtle: #8794a4; /* tertiary, captions — AA ≥4.5:1 on all surfaces */
+  /* ---- Text — LIGHT ----------------------------------------------------- */
+  --color-text: #152a37; /* primary — brand navy */
+  --color-text-muted: #4a5868; /* secondary — mid navy */
+  --color-text-subtle: #616d7b; /* tertiary — AA ≥4.5:1 on bg (5.0:1) */
 
-  /* ---- Semantic --------------------------------------------------------- */
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
+  /* ---- Semantic — LIGHT (deeper for contrast on white) ------------------ */
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
 
   /* ---- Type scale (mobile values; display tier scales up at md via the
          companion -md tokens, e.g. text-display-2xl md:text-display-2xl-md) - */
@@ -149,12 +167,12 @@
   --radius-2xl: 24px;
   --radius-full: 9999px;
 
-  /* ---- Elevation (dark-first: rgba black + inner highlight, not the fake
-         Tailwind defaults that look wrong on pure black) ------------------- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-glow-accent: 0 0 24px rgba(124, 212, 236, 0.25), 0 0 64px rgba(124, 212, 236, 0.12);
+  /* ---- Elevation — LIGHT (soft navy-tinted; black shadows look heavy/dated
+         on light surfaces). Dark overrides to rgba-black + inner highlight. --- */
+  --shadow-sm: 0 1px 2px rgba(21, 42, 55, 0.06);
+  --shadow-md: 0 4px 12px rgba(21, 42, 55, 0.08);
+  --shadow-lg: 0 12px 32px rgba(21, 42, 55, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(28, 124, 153, 0.18), 0 0 64px rgba(28, 124, 153, 0.08);
 
   /* ---- Motion (durations + easings; --ease-* also generate ease-* utils) - */
   --duration-fast: 150ms;
@@ -167,9 +185,61 @@
 }
 
 /* ============================================================================
+   DARK THEME — overrides only the swapping color + elevation tokens. These are
+   the values shipped by the previous dark-only build, so dark cannot regress.
+   Activated by next-themes writing data-theme="dark" on <html>. Brand colors,
+   type scale, radius and motion are theme-invariant and stay in @theme above.
+   ========================================================================== */
+:root[data-theme="dark"] {
+  /* accent */
+  --color-accent: #7cd4ec; /* bright cyan is the primary accent on dark */
+  --color-accent-2: #3dc6e8;
+  --color-accent-fg: #001318;
+  --color-accent-bright: #7cd4ec; /* == accent on dark (pop tier collapses) */
+
+  /* accent ramp 50–950 (dark) */
+  --color-accent-50: #ecfbfe;
+  --color-accent-100: #cff4fb;
+  --color-accent-200: #a6eaf7;
+  --color-accent-300: #7cd4ec;
+  --color-accent-400: #5ccdea;
+  --color-accent-500: #3dc6e8;
+  --color-accent-600: #22a6cc;
+  --color-accent-700: #1a82a3;
+  --color-accent-800: #186a85;
+  --color-accent-900: #18596f;
+  --color-accent-950: #0a3a4a;
+
+  /* surfaces (dark-first) */
+  --color-bg: #000000;
+  --color-surface: #0a0f14;
+  --color-surface-2: #121922;
+  --color-surface-3: #1a2330;
+  --color-border: #1f2a38;
+  --color-border-strong: #2c3a4d;
+  --color-ring: #7cd4ec;
+
+  /* text */
+  --color-text: #f4f5f0;
+  --color-text-muted: #a4b0c0;
+  --color-text-subtle: #8794a4;
+
+  /* semantic */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  /* elevation — rgba black + inner highlight (right on near-black surfaces) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-glow-accent: 0 0 24px rgba(124, 212, 236, 0.25), 0 0 64px rgba(124, 212, 236, 0.12);
+}
+
+/* ============================================================================
    Base layer
-   The system is dark-first: the design tokens above ARE the dark palette and
-   apply globally. Surfaces/text reference tokens, never literals.
+   Surfaces/text reference tokens, never literals — so they follow the active
+   theme automatically.
    ========================================================================== */
 * {
   box-sizing: border-box;
@@ -205,19 +275,25 @@ body {
   border-radius: var(--radius-full);
 }
 
-/* Text gradient — accent ramp, on brand. */
+/* Text gradient — accent → deeper accent. Token-driven, so it reads in both
+   themes (deep teal pair on light, bright cyan pair on dark). */
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-500) 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glass card */
+/* Glass card — used over imagery (founder caption). Frosted WHITE on light so
+   navy text reads; frosted dark on dark so cream text reads. */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(21, 42, 55, 0.08);
+}
+[data-theme="dark"] .glass {
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -256,7 +332,7 @@ body {
   position: absolute;
   inset: -8px;
   border-radius: inherit;
-  border: 2px solid var(--color-accent);
+  border: 2px solid var(--color-accent-bright);
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 

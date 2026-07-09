@@ -1,3 +1,44 @@
+# JOBKREATORS — Dual-Theme Conversion (Phase 7)
+
+Branch: `redesign/polish-v1` · Working tree only (not committed/pushed).
+
+**The dark-only decision is reversed: the site is now dual-theme with LIGHT as
+the default and DARK as the alternative** (client's brand collateral lives on
+light surfaces). This was a proper rebuild of the theme system, not a bolt-on.
+
+- `next-themes` reinstalled; `components/ui/ThemeProvider.tsx` recreated
+  (`attribute="data-theme"`, `defaultTheme="light"`, `enableSystem={false}`,
+  `disableTransitionOnChange`). `app/layout.tsx` wraps the tree + adds
+  `suppressHydrationWarning`.
+- **Token architecture (Tailwind v4):** `app/globals.css` now declares every
+  color/elevation token at its **LIGHT** value inside `@theme` (utilities
+  generate + default cascade is light), with a `:root[data-theme="dark"]` block
+  overriding only the swapping tokens with the previous dark-only values (so dark
+  cannot regress). A `@custom-variant dark (…[data-theme="dark"]…)` makes `dark:`
+  utilities follow the toggle, not `prefers-color-scheme`.
+- **Accent is theme-split:** light `#1C7C99` (deeper — bright washes out on white;
+  also clears WCAG AA as small text **4.56:1** and white-on-accent **4.77:1**),
+  dark `#7CD4EC`. Shared `--color-accent-bright #7CD4EC` pop tier for small live
+  signals in both themes. **Light `--color-text-subtle` corrected `#6F7A88`→
+  `#616D7B`** (4.18:1 failed AA → 5.0:1). Dual elevation (soft navy-tinted on
+  light, rgba-black + inset highlight on dark).
+- **New `components/ui/ThemeToggle.tsx`** — deliberate Sun/Moon, mounted-gated
+  placeholder, `AnimatePresence` cross-fade gated on `useMotionSafe()`, dynamic
+  aria-label; placed in the navbar before "Hire Now".
+- **`<Logo>` auto-tiles by theme** (CSS `dark:`, no `surface` prop, stays a Server
+  Component — SSR-correct, no flicker). Navbar/Footer/Logo3D call sites updated.
+- **Theme-aware touch-ups:** navbar blur (`backdrop-blur-md dark:backdrop-blur-xl`
+  + hairline on light), matching-engine stat chips (white+strong border on light /
+  surface-3+subtle on dark) and accent-bright shortlist pulse, softened ambient
+  glows on light (Hero / CandidateCTA / FounderSection), theme-aware `.glass` /
+  `.gradient-text` / `.pulse-ring`, and `secondary` button text
+  (`text-brand-cream`→`text-text`).
+- `npm run build` → ✅ 0 errors/warnings (17 routes). `npm run lint` → ✅ 0.
+- **Out of scope (unchanged):** the inner pages still use legacy light-mode markup
+  and will break under dark — inventoried for the next run (see chat report).
+
+---
+
 # JOBKREATORS — Homepage Overhaul (Phases 2→6)
 
 Branch: `redesign/polish-v1` · Working tree only (not committed/pushed).

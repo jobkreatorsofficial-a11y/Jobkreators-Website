@@ -32,10 +32,11 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
-      {/* Ambient accent glow (decorative). */}
+      {/* Ambient accent glow (decorative). Softer on light — a heavy glow reads
+          cheap on white; a faint tint reads premium. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 right-0 h-[480px] w-[480px] rounded-full bg-accent/10 blur-[120px]"
+        className="pointer-events-none absolute -top-24 right-0 h-[480px] w-[480px] rounded-full bg-accent/[0.07] blur-[120px] dark:bg-accent/10"
       />
 
       <Container className="relative">

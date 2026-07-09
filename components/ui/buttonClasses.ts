@@ -17,7 +17,7 @@ export const BUTTON_BASE =
 export const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-accent text-accent-fg hover:bg-accent-2 shadow-[var(--shadow-glow-accent)]",
   secondary:
-    "border border-border-strong bg-transparent text-brand-cream hover:bg-surface-2 hover:border-accent",
+    "border border-border-strong bg-transparent text-text hover:bg-surface-2 hover:border-accent",
   ghost: "bg-transparent text-text hover:bg-surface-2",
   // `link` underline animates in from the left on hover (handled inside <Button>).
   link: "group/link bg-transparent px-0 text-accent hover:text-accent-2",

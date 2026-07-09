@@ -19,8 +19,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-5">
-              {/* Dark surface → original-color lockup on a refined cream tile. */}
-              <Logo variant="lockup" surface="tile" size="xl" />
+              {/* Logo auto-tiles: bare on light, refined cream stamp on dark. */}
+              <Logo variant="lockup" size="xl" />
             </div>
             <p className="mb-6 max-w-xs text-body-sm leading-relaxed text-text-muted">
               India&apos;s premium AI-powered recruitment and consultancy firm. Trusted by 242+

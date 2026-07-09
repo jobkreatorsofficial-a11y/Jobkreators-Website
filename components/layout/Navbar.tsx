@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { NAV_LINKS, SITE } from "@/lib/data";
@@ -40,13 +41,13 @@ export default function Navbar() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed inset-x-0 top-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-[var(--duration-slow)] ${
           scrolled
-            ? "border-b border-border bg-bg/80 backdrop-blur-xl"
+            ? "border-b border-border bg-bg/80 backdrop-blur-md dark:backdrop-blur-xl"
             : "border-b border-transparent bg-transparent"
         }`}
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
           <Link href="/" className="flex items-center" aria-label="JOBKREATORS home">
-            <Logo variant="wordmark" surface="tile" size={28} priority />
+            <Logo variant="wordmark" size={28} priority />
           </Link>
 
           {/* Desktop nav — left-origin underline draw on hover. */}
@@ -67,6 +68,8 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+
             <a
               href={whatsappHref}
               target="_blank"
