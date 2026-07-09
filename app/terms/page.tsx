@@ -11,10 +11,10 @@ export default function TermsPage() {
     <>
       <Navbar />
       <main className="pt-16">
-        <section className="py-20 bg-white dark:bg-[#0A0A0A] min-h-screen">
+        <section className="py-20 bg-bg min-h-screen">
           <div className="max-w-3xl mx-auto px-6 lg:px-8">
-            <h1 className="text-4xl font-bold text-[#1D1D1F] dark:text-white mb-4">Terms of Service</h1>
-            <p className="text-[#6E6E73] dark:text-[#A1A1A6] mb-10">Last updated: May 2025</p>
+            <h1 className="text-4xl font-bold font-display text-text mb-4">Terms of Service</h1>
+            <p className="text-text-muted mb-10">Last updated: May 2025</p>
 
             <div className="space-y-8">
               {[
@@ -56,8 +56,8 @@ export default function TermsPage() {
                 },
               ].map((section) => (
                 <div key={section.title}>
-                  <h2 className="text-xl font-bold text-[#1D1D1F] dark:text-white mb-3">{section.title}</h2>
-                  <p className="text-[#6E6E73] dark:text-[#A1A1A6] leading-relaxed">{section.content}</p>
+                  <h2 className="text-xl font-bold font-display text-text mb-3">{section.title}</h2>
+                  <p className="text-text-muted leading-relaxed">{section.content}</p>
                 </div>
               ))}
             </div>
