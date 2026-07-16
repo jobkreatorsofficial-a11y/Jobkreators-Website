@@ -73,7 +73,7 @@ export default function SubmitCVPage() {
                     <input
                       {...register("name", { required: "Name is required" })}
                       placeholder="Rahul Sharma"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     />
                     {errors.name && <p className="text-danger text-xs mt-1">{errors.name.message}</p>}
                   </div>
@@ -85,7 +85,7 @@ export default function SubmitCVPage() {
                       {...register("email", { required: "Email is required" })}
                       type="email"
                       placeholder="rahul@email.com"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     />
                     {errors.email && <p className="text-danger text-xs mt-1">{errors.email.message}</p>}
                   </div>
@@ -99,7 +99,7 @@ export default function SubmitCVPage() {
                     <input
                       {...register("phone", { required: "Phone is required" })}
                       placeholder="+91 98765 43210"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     />
                     {errors.phone && <p className="text-danger text-xs mt-1">{errors.phone.message}</p>}
                   </div>
@@ -110,7 +110,7 @@ export default function SubmitCVPage() {
                     <input
                       {...register("role", { required: "Role is required" })}
                       placeholder="Business Development Manager"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     />
                     {errors.role && <p className="text-danger text-xs mt-1">{errors.role.message}</p>}
                   </div>
@@ -123,7 +123,7 @@ export default function SubmitCVPage() {
                     </label>
                     <select
                       {...register("experience", { required: true })}
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     >
                       <option value="">Select experience</option>
                       <option>Fresher (0-1 year)</option>
@@ -140,7 +140,7 @@ export default function SubmitCVPage() {
                     <input
                       {...register("location")}
                       placeholder="Mumbai / Remote"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                     />
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function SubmitCVPage() {
                     {...register("message")}
                     rows={4}
                     placeholder="Tell us about yourself and what you're looking for..."
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition resize-none"
                   />
                 </div>
 

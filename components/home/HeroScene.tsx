@@ -117,29 +117,36 @@ export default function HeroScene() {
   const motionSafe = useMotionSafe();
   const sceneRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTiny, setIsTiny] = useState(false);
   const [canHover, setCanHover] = useState(false);
 
   useEffect(() => {
     const mqMobile = window.matchMedia("(max-width: 767px)");
+    const mqTiny = window.matchMedia("(max-width: 399px)"); // hide chips below 400px
     const mqHover = window.matchMedia("(hover: hover)");
     const apply = () => {
       setIsMobile(mqMobile.matches);
+      setIsTiny(mqTiny.matches);
       setCanHover(mqHover.matches);
     };
     apply();
     mqMobile.addEventListener("change", apply);
+    mqTiny.addEventListener("change", apply);
     mqHover.addEventListener("change", apply);
     return () => {
       mqMobile.removeEventListener("change", apply);
+      mqTiny.removeEventListener("change", apply);
       mqHover.removeEventListener("change", apply);
     };
   }, []);
 
-  // Motion gates.
+  // Motion gates. On mobile (<md) the scene FREEZES: no glow drift, no logo float,
+  // no logo scroll-parallax, no chip drift — battery + touch-scroll cleanup.
+  const sceneMotion = motionSafe && !isMobile;
   const mouseActive = motionSafe && canHover;
-  const scrollGlobal = motionSafe && !isMobile; // glow + chips scroll
-  const scrollLogo = motionSafe; // logo scrolls even on mobile (per fallback)
-  const driftChips = motionSafe && !isMobile;
+  const scrollGlobal = sceneMotion; // glow + chips scroll
+  const scrollLogo = sceneMotion; // logo scroll-parallax now disabled on mobile too
+  const driftChips = sceneMotion;
 
   // --- Mouse parallax: normalized (-1..1) → per-layer damped springs. ---
   const mx = useMotionValue(0);
@@ -177,7 +184,7 @@ export default function HeroScene() {
   return (
     <div
       ref={sceneRef}
-      className="relative mx-auto h-[400px] w-[320px] sm:w-[400px] md:h-[500px] lg:w-[540px]"
+      className="relative mx-auto h-[280px] w-[320px] sm:w-[400px] md:h-[500px] lg:w-[540px]"
       onMouseMove={mouseActive ? handleMove : undefined}
       onMouseLeave={mouseActive ? handleLeave : undefined}
     >
@@ -188,8 +195,8 @@ export default function HeroScene() {
             <motion.div
               className="absolute left-[60%] top-[40%] h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.08] blur-[60px] dark:opacity-25"
               style={{ background: "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)" }}
-              animate={motionSafe ? { x: GLOW_DRIFT.x, y: GLOW_DRIFT.y } : undefined}
-              transition={motionSafe ? { duration: 20, ease: "linear", repeat: Infinity } : undefined}
+              animate={sceneMotion ? { x: GLOW_DRIFT.x, y: GLOW_DRIFT.y } : undefined}
+              transition={sceneMotion ? { duration: 20, ease: "linear", repeat: Infinity } : undefined}
               aria-hidden
             />
           </motion.div>
@@ -201,8 +208,8 @@ export default function HeroScene() {
         <motion.div style={{ y: scrollLogo ? logoScrollY : undefined }}>
           <motion.div style={{ x: logoMX, y: logoMY }}>
             <motion.div
-              animate={motionSafe ? { y: [0, -6, 0] } : undefined}
-              transition={motionSafe ? { duration: 7, ease: "easeInOut", repeat: Infinity } : undefined}
+              animate={sceneMotion ? { y: [0, -6, 0] } : undefined}
+              transition={sceneMotion ? { duration: 7, ease: "easeInOut", repeat: Infinity } : undefined}
               className="w-[300px] sm:w-[380px] lg:w-[500px]"
             >
               <Image
@@ -230,20 +237,23 @@ export default function HeroScene() {
         </motion.div>
       </div>
 
-      {/* LAYER 3 — floating signal chips (z-20). Chips 2 & 3 drop on mobile. */}
-      <Chip
-        style={{ top: "8%", left: "-5%" }}
-        value="500K+"
-        label="PROFILES SCANNED"
-        mouseX={c1MX}
-        mouseY={c1MY}
-        scrollY={scrollGlobal ? chipScrollY : undefined}
-        drift={CHIP1_DRIFT}
-        driftDur={12}
-        driftEase="easeInOut"
-        driftActive={driftChips}
-        motionSafe={motionSafe}
-      />
+      {/* LAYER 3 — floating signal chips (z-20). Chips 2 & 3 drop <md; ALL chips
+          drop below 400px so tiny screens show just the glow + logo. */}
+      {!isTiny && (
+        <Chip
+          style={{ top: "8%", left: "-5%" }}
+          value="500K+"
+          label="PROFILES SCANNED"
+          mouseX={c1MX}
+          mouseY={c1MY}
+          scrollY={scrollGlobal ? chipScrollY : undefined}
+          drift={CHIP1_DRIFT}
+          driftDur={12}
+          driftEase="easeInOut"
+          driftActive={driftChips}
+          motionSafe={sceneMotion}
+        />
+      )}
       {!isMobile && (
         <Chip
           style={{ top: "40%", right: "-8%" }}
@@ -256,7 +266,7 @@ export default function HeroScene() {
           driftDur={5}
           driftEase="easeInOut"
           driftActive={driftChips}
-          motionSafe={motionSafe}
+          motionSafe={sceneMotion}
         />
       )}
       {!isMobile && (
@@ -271,23 +281,25 @@ export default function HeroScene() {
           driftDur={10}
           driftEase="easeInOut"
           driftActive={driftChips}
-          motionSafe={motionSafe}
+          motionSafe={sceneMotion}
         />
       )}
-      <Chip
-        style={{ bottom: "5%", right: "5%" }}
-        value="3,247"
-        label="LIVE SCANS TODAY"
-        dot
-        mouseX={c4MX}
-        mouseY={c4MY}
-        scrollY={scrollGlobal ? chipScrollY : undefined}
-        drift={CHIP4_DRIFT}
-        driftDur={9}
-        driftEase="linear"
-        driftActive={driftChips}
-        motionSafe={motionSafe}
-      />
+      {!isTiny && (
+        <Chip
+          style={{ bottom: "5%", right: "5%" }}
+          value="3,247"
+          label="LIVE SCANS TODAY"
+          dot
+          mouseX={c4MX}
+          mouseY={c4MY}
+          scrollY={scrollGlobal ? chipScrollY : undefined}
+          drift={CHIP4_DRIFT}
+          driftDur={9}
+          driftEase="linear"
+          driftActive={driftChips}
+          motionSafe={sceneMotion}
+        />
+      )}
     </div>
   );
 }

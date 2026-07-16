@@ -30,7 +30,7 @@ export default function Section({
     <section
       id={id}
       className={cn(
-        "py-24 md:py-32",
+        "py-16 md:py-24 lg:py-32",
         SURFACES[surface],
         // Smooth-scroll anchors clear the fixed navbar.
         id && "scroll-mt-24",

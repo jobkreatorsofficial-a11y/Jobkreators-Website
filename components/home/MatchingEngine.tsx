@@ -59,7 +59,7 @@ const SHORTLIST: Node[] = [
 const SLOTS = [0, 1, 2]; // three concurrent match lines
 
 const STAT_CHIPS = [
-  { value: "500K+", label: "Profiles scanned", pos: "left-3 top-11 md:left-4 md:top-12" },
+  { value: "500K+", label: "Profiles scanned", pos: "left-3 top-[80px] md:left-4 md:top-12" },
   { value: "94%", label: "Match accuracy", pos: "right-3 top-1/2 -translate-y-1/2 md:right-4" },
   { value: "24h", label: "Avg shortlist time", pos: "bottom-3 right-3 md:bottom-4 md:right-4" },
 ] as const;
@@ -165,9 +165,13 @@ export default function MatchingEngine() {
         }}
       />
 
+      {/* LIVE status + counter. On mobile they sit as a flow row ABOVE the SVG (so
+          they don't crowd the stat chips on the small card); from md up the wrapper
+          becomes `contents` and each overlays an SVG corner as before. */}
+      <div className="relative z-20 mb-3 flex items-start justify-between gap-3 md:contents md:mb-0">
       {/* LIVE status — signals a live system, not a static diagram. The dot pulse
           + the SCANNING loader are gated on motion-safety. */}
-      <div className="absolute left-4 top-4 z-20 flex flex-col gap-1">
+      <div className="z-20 flex flex-col gap-1 md:absolute md:left-4 md:top-4">
         <div className="flex items-center gap-1.5">
           <span className="relative inline-flex h-1.5 w-1.5" aria-hidden>
             {motionSafe && (
@@ -199,15 +203,16 @@ export default function MatchingEngine() {
         </div>
       </div>
 
-      {/* Live "matches today" ticker — top-right. Deterministic initial value keeps
-          SSR + first client render identical; it increments client-side. */}
-      <div className="absolute right-4 top-4 z-20 text-right">
+      {/* Live "matches today" ticker. Deterministic initial value keeps SSR + first
+          client render identical; it increments client-side. */}
+      <div className="z-20 text-right md:absolute md:right-4 md:top-4">
         <div className="font-display text-body-sm font-bold tabular-nums leading-none text-accent">
           {matchCount.toLocaleString("en-US")}
         </div>
         <div className="mt-0.5 text-[10px] uppercase tracking-tight text-text-subtle">
           matches today
         </div>
+      </div>
       </div>
 
       <svg

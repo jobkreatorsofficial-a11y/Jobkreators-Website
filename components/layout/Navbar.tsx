@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,15 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const motionSafe = useMotionSafe();
+  const pathname = usePathname();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Close + return focus to the toggle (used by Escape and the backdrop).
+  const closeMenu = useCallback(() => {
+    setMobileOpen(false);
+    menuButtonRef.current?.focus();
+  }, []);
 
   // Backdrop-blur + hairline only appear after the user scrolls past 40px so the
   // hero reads edge-to-edge at the top.
@@ -33,6 +43,47 @@ export default function Navbar() {
     };
   }, [mobileOpen]);
 
+  // Close the drawer on route change (wrapped call keeps the react-hooks
+  // set-state-in-effect rule happy).
+  useEffect(() => {
+    const close = () => setMobileOpen(false);
+    close();
+  }, [pathname]);
+
+  // While open: Escape closes, and Tab is trapped inside the drawer.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const getFocusable = () =>
+      drawerRef.current
+        ? Array.from(
+            drawerRef.current.querySelectorAll<HTMLElement>(
+              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            ),
+          )
+        : [];
+    getFocusable()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeMenu();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const f = getFocusable();
+      if (f.length === 0) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen, closeMenu]);
+
   return (
     <>
       <motion.header
@@ -47,7 +98,15 @@ export default function Navbar() {
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
           <Link href="/" className="flex items-center" aria-label="JOBKREATORS home">
-            <Logo variant="lockup" size={32} priority />
+            {/* Mark on mobile (the full lockup is illegible at 32px there); full
+                lockup from md up. Wrapper spans own the display toggle so they beat
+                the Logo's own `inline-flex`. */}
+            <span className="md:hidden">
+              <Logo variant="mark" size={30} priority />
+            </span>
+            <span className="hidden md:inline-flex">
+              <Logo variant="lockup" size={32} priority />
+            </span>
           </Link>
 
           {/* Desktop nav — left-origin underline draw on hover. */}
@@ -81,7 +140,8 @@ export default function Navbar() {
             </a>
 
             <button
-              className="rounded-full p-2 text-text transition-colors hover:bg-surface-2 md:hidden"
+              ref={menuButtonRef}
+              className="flex h-11 w-11 items-center justify-center rounded-full p-3 text-text transition-colors hover:bg-surface-2 md:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
@@ -102,10 +162,14 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-40 bg-bg/60 backdrop-blur-sm md:hidden"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMenu}
               aria-hidden
             />
             <motion.div
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
               initial={motionSafe ? { x: "100%" } : false}
               animate={{ x: 0 }}
               exit={motionSafe ? { x: "100%" } : undefined}

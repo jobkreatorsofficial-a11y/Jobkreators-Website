@@ -42,8 +42,9 @@ export default function Hero() {
       <Container className="relative">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-16">
           {/* Visual — the layered parallax hero scene (glow + lockup + chips).
-              Stacks above the text on mobile, sits right on desktop. */}
-          <motion.div className="order-first lg:order-last" {...fade(0.15)}>
+              `order-last` puts the copy FIRST on mobile (value prop above the fold)
+              and, in the desktop grid, places the scene in the right (2fr) column. */}
+          <motion.div className="order-last" {...fade(0.15)}>
             <HeroScene />
           </motion.div>
 
@@ -55,7 +56,7 @@ export default function Hero() {
 
             <motion.h1
               {...fade(0.05)}
-              className="max-w-[16ch] font-display text-display-2xl md:text-display-2xl-md"
+              className="max-w-[16ch] font-display font-bold leading-[1.05] tracking-[-0.035em] text-[clamp(2.5rem,8vw,5.5rem)]"
             >
               Hire smarter. Hire faster.{" "}
               <span className="text-accent">In 72 hours.</span>

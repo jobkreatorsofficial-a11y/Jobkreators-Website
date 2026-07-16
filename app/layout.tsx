@@ -61,7 +61,7 @@ export default function RootLayout({
       className={`${inter.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen overflow-x-hidden antialiased">
         <ThemeProvider>
           {/* Skip link — visible only on keyboard focus, jumps to <main id="main">. */}
           <a

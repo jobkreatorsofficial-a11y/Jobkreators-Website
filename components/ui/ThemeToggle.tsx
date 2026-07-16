@@ -27,9 +27,9 @@ export default function ThemeToggle() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  // Placeholder of identical dimensions (p-2 + 18px icon = 34px box) pre-mount.
+  // Placeholder of identical dimensions (44px touch target) pre-mount.
   if (!mounted) {
-    return <span className="inline-block h-[34px] w-[34px]" aria-hidden />;
+    return <span className="inline-block h-11 w-11" aria-hidden />;
   }
 
   const isDark = resolvedTheme === "dark";
@@ -40,7 +40,7 @@ export default function ThemeToggle() {
       type="button"
       onClick={() => setTheme(next)}
       aria-label={`Switch to ${next} theme`}
-      className="relative inline-flex h-[34px] w-[34px] items-center justify-center rounded-full p-2 text-text-muted transition-colors hover:bg-surface-2 hover:text-text"
+      className="relative inline-flex h-11 w-11 items-center justify-center rounded-full p-3 text-text-muted transition-colors hover:bg-surface-2 hover:text-text"
     >
       <AnimatePresence mode="wait" initial={false}>
         {isDark ? (

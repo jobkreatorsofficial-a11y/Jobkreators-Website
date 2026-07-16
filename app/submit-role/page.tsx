@@ -88,12 +88,12 @@ export default function SubmitRolePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Company Name *</label>
-                    <input {...register("company", { required: true })} placeholder="Acme Corp" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("company", { required: true })} placeholder="Acme Corp" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                     {errors.company && <p className="text-danger text-xs mt-1">Required</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Your Name *</label>
-                    <input {...register("name", { required: true })} placeholder="Priya Verma" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("name", { required: true })} placeholder="Priya Verma" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                     {errors.name && <p className="text-danger text-xs mt-1">Required</p>}
                   </div>
                 </div>
@@ -101,12 +101,12 @@ export default function SubmitRolePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Work Email *</label>
-                    <input {...register("email", { required: true })} type="email" placeholder="priya@company.com" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("email", { required: true })} type="email" placeholder="priya@company.com" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                     {errors.email && <p className="text-danger text-xs mt-1">Required</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Phone *</label>
-                    <input {...register("phone", { required: true })} placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("phone", { required: true })} placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                     {errors.phone && <p className="text-danger text-xs mt-1">Required</p>}
                   </div>
                 </div>
@@ -114,12 +114,12 @@ export default function SubmitRolePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Role to Fill *</label>
-                    <input {...register("role", { required: true })} placeholder="Senior Sales Manager" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("role", { required: true })} placeholder="Senior Sales Manager" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                     {errors.role && <p className="text-danger text-xs mt-1">Required</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Number of Positions</label>
-                    <select {...register("count")} className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition">
+                    <select {...register("count")} className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition">
                       <option>1</option>
                       <option>2-5</option>
                       <option>5-10</option>
@@ -132,7 +132,7 @@ export default function SubmitRolePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Timeline</label>
-                    <select {...register("timeline")} className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition">
+                    <select {...register("timeline")} className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition">
                       <option>ASAP (within a week)</option>
                       <option>Within 2 weeks</option>
                       <option>Within a month</option>
@@ -141,13 +141,13 @@ export default function SubmitRolePage() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-text mb-2">Work Location</label>
-                    <input {...register("location")} placeholder="Mumbai / Remote / Hybrid" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
+                    <input {...register("location")} placeholder="Mumbai / Remote / Hybrid" className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-text mb-2">Additional Notes</label>
-                  <textarea {...register("notes")} rows={4} placeholder="Budget, required skills, team context, anything else we should know..." className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition resize-none" />
+                  <textarea {...register("notes")} rows={4} placeholder="Budget, required skills, team context, anything else we should know..." className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition resize-none" />
                 </div>
 
                 <button type="submit" className="w-full bg-accent text-accent-fg font-bold py-4 rounded-xl hover:bg-accent-2 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-accent/25">
