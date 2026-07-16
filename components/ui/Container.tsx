@@ -20,10 +20,14 @@ const SIZES: Record<NonNullable<ContainerProps["size"]>, string> = {
  */
 export default function Container({
   size = "default",
-  as: Tag = "div",
+  as = "div",
   className,
   children,
 }: ContainerProps) {
+  // `as`-prop needs explicit typing when polymorphic; TS otherwise infers this
+  // JSX tag's children as `never` (React.ElementType collapse). The cast pins the
+  // accepted props/children so children stay valid — do not remove.
+  const Tag = as as React.ElementType<{ className?: string; children?: React.ReactNode }>;
   return (
     <Tag className={cn("mx-auto w-full px-6 md:px-8", SIZES[size], className)}>
       {children}

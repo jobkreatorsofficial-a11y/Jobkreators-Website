@@ -72,6 +72,12 @@ export default function MatchingEngine() {
   // Mobile thins the constellation for clarity/perf. SSR + first client render use
   // the full set (no hydration mismatch); the effect trims afterward.
   const [visibleCount, setVisibleCount] = useState(CANDIDATES.length);
+  // Live "matches today" ticker — deterministic initial value (SSR-safe), then
+  // increments client-side while animating.
+  const [matchCount, setMatchCount] = useState(1247);
+  // Which 2–3 candidate nodes are actively "scanning" (pulsing) right now.
+  const [pulseSet, setPulseSet] = useState<number[]>([]);
+  const [pulseTick, setPulseTick] = useState(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -97,6 +103,39 @@ export default function MatchingEngine() {
     const id = window.setInterval(() => setTick((t) => t + 1), 1500);
     return () => window.clearInterval(id);
   }, [motionSafe, inView]);
+
+  // Live "matches today" ticker — +1 every 3–5s while animating. Each increment
+  // re-keys the shortlist ripple below for a one-shot pulse.
+  useEffect(() => {
+    if (!motionSafe || !inView) return;
+    let timer = 0;
+    const schedule = () => {
+      timer = window.setTimeout(() => {
+        setMatchCount((c) => c + 1);
+        schedule();
+      }, 3000 + Math.random() * 2000);
+    };
+    schedule();
+    return () => window.clearTimeout(timer);
+  }, [motionSafe, inView]);
+
+  // Rotate which 2–3 candidate nodes are "scanning" every ~1.5s.
+  useEffect(() => {
+    if (!motionSafe || !inView) return;
+    const pick = () => {
+      const n = Math.min(visibleCount, CANDIDATES.length);
+      const out: number[] = [];
+      while (out.length < 3 && out.length < n) {
+        const r = Math.floor(Math.random() * n);
+        if (!out.includes(r)) out.push(r);
+      }
+      setPulseSet(out);
+      setPulseTick((t) => t + 1);
+    };
+    pick();
+    const id = window.setInterval(pick, 1500);
+    return () => window.clearInterval(id);
+  }, [motionSafe, inView, visibleCount]);
 
   const candidates = CANDIDATES.slice(0, visibleCount);
   const animating = motionSafe && inView;
@@ -126,18 +165,49 @@ export default function MatchingEngine() {
         }}
       />
 
-      {/* LIVE status row — signals a live system, not a static diagram. The dot
-          pulse is gated on motion-safety. */}
-      <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5">
-        <span className="relative inline-flex h-1.5 w-1.5" aria-hidden>
-          {motionSafe && (
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-bright opacity-75" />
-          )}
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-bright" />
-        </span>
-        <span className="text-[10px] font-medium uppercase tracking-tight text-text-subtle">
-          Live matching
-        </span>
+      {/* LIVE status — signals a live system, not a static diagram. The dot pulse
+          + the SCANNING loader are gated on motion-safety. */}
+      <div className="absolute left-4 top-4 z-20 flex flex-col gap-1">
+        <div className="flex items-center gap-1.5">
+          <span className="relative inline-flex h-1.5 w-1.5" aria-hidden>
+            {motionSafe && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-bright opacity-75" />
+            )}
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-bright" />
+          </span>
+          <span className="text-[10px] font-medium uppercase tracking-tight text-text-subtle">
+            Live matching
+          </span>
+        </div>
+        <div className="flex items-center pl-3 text-[10px] uppercase tracking-tight text-text-subtle">
+          Scanning
+          <span aria-hidden className="inline-flex w-3 justify-start">
+            {animating ? (
+              [0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  animate={{ opacity: [0.2, 1, 0.2] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                >
+                  .
+                </motion.span>
+              ))
+            ) : (
+              <span>…</span>
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* Live "matches today" ticker — top-right. Deterministic initial value keeps
+          SSR + first client render identical; it increments client-side. */}
+      <div className="absolute right-4 top-4 z-20 text-right">
+        <div className="font-display text-body-sm font-bold tabular-nums leading-none text-accent">
+          {matchCount.toLocaleString("en-US")}
+        </div>
+        <div className="mt-0.5 text-[10px] uppercase tracking-tight text-text-subtle">
+          matches today
+        </div>
       </div>
 
       <svg
@@ -231,6 +301,41 @@ export default function MatchingEngine() {
               style={{ r: `calc(${n.r}px + var(--me-node-bump, 0px))` }}
             />
           ),
+        )}
+
+        {/* Active-scan highlights — the 2–3 "scanning" candidate nodes light up
+            cyan (0 → 1 → 0 over ~1.5s), re-picked each cycle. Overlay only, so the
+            underlying node positions/drift are untouched. */}
+        {animating &&
+          pulseSet.map((idx) => {
+            const n = candidates[idx];
+            if (!n) return null;
+            return (
+              <motion.circle
+                key={`scan-${idx}-${pulseTick}`}
+                cx={n.x}
+                cy={n.y}
+                r={n.r + 1.5}
+                fill="var(--color-accent-bright)"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.9, 0] }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+              />
+            );
+          })}
+
+        {/* Increment ripple — a one-shot accent glow that expands from the
+            shortlist on every new match (re-keyed by matchCount). */}
+        {animating && (
+          <motion.circle
+            key={`ripple-${matchCount}`}
+            cx={CENTER.x}
+            cy={CENTER.y}
+            fill="var(--color-accent)"
+            initial={{ r: 14, opacity: 0.35 }}
+            animate={{ r: 46, opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
         )}
 
         {/* Shortlist cluster — accent-filled "matches" */}

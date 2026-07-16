@@ -2,6 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
 import StatsBar from "@/components/home/StatsBar";
+import MatchingEngineSection from "@/components/home/MatchingEngineSection";
 import ServicesGrid from "@/components/home/ServicesGrid";
 import AIDashboard from "@/components/home/AIDashboard";
 import ProcessSteps from "@/components/home/ProcessSteps";
@@ -61,6 +62,7 @@ export default function HomePage() {
       <main id="main">
         <Hero />
         <StatsBar />
+        <MatchingEngineSection />
         <ServicesGrid />
         <AIDashboard />
         <ProcessSteps />

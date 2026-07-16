@@ -6,7 +6,7 @@ import { ArrowRight, MessageCircle, Check } from "lucide-react";
 import Container from "@/components/ui/Container";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { buttonClasses, BUTTON_ICON_SIZE } from "@/components/ui/buttonClasses";
-import MatchingEngine from "@/components/home/MatchingEngine";
+import HeroScene from "@/components/home/HeroScene";
 import { SITE } from "@/lib/data";
 import { useMotionSafe } from "@/lib/hooks/useMotionSafe";
 
@@ -41,9 +41,10 @@ export default function Hero() {
 
       <Container className="relative">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[3fr_2fr] lg:gap-16">
-          {/* Visual — stacks above the text on mobile, sits right on desktop. */}
+          {/* Visual — the layered parallax hero scene (glow + lockup + chips).
+              Stacks above the text on mobile, sits right on desktop. */}
           <motion.div className="order-first lg:order-last" {...fade(0.15)}>
-            <MatchingEngine />
+            <HeroScene />
           </motion.div>
 
           {/* Text */}

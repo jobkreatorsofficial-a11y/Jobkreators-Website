@@ -16,10 +16,14 @@ type EyebrowProps = {
  */
 export default function Eyebrow({
   dot = false,
-  as: Tag = "span",
+  as = "span",
   className,
   children,
 }: EyebrowProps) {
+  // `as`-prop needs explicit typing when polymorphic; TS otherwise infers this
+  // JSX tag's children as `never` (React.ElementType collapse). The cast pins the
+  // accepted props/children so children stay valid — do not remove.
+  const Tag = as as React.ElementType<{ className?: string; children?: React.ReactNode }>;
   return (
     <Tag
       className={cn(

@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
     // defaults images.qualities to [75], so 95 must be allow-listed.
     qualities: [75, 95],
   },
-  transpilePackages: ["three"],
 };
 
 export default nextConfig;

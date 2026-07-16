@@ -315,6 +315,21 @@ body {
   animation-play-state: paused;
 }
 
+/* Slower marquee for the services row (readable pace). */
+.marquee-track-slow {
+  animation: marquee 38s linear infinite;
+}
+
+.marquee-track-slow:hover {
+  animation-play-state: paused;
+}
+
+/* Edge fade-mask so marquee cards fade in/out instead of hard-cutting. */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+
 /* Pulse ring */
 @keyframes pulse-ring {
   0% {
@@ -378,6 +393,7 @@ body {
   }
 
   .marquee-track,
+  .marquee-track-slow,
   .pulse-ring::before {
     animation: none;
   }

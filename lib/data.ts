@@ -83,13 +83,13 @@ export const INDUSTRIES = [
 export const PROCESS = [
   {
     step: "01",
-    title: "Screening",
-    description: "We rigorously screen quality candidates against your exact role requirements.",
+    title: "Sourcing",
+    description: "Proprietary AI engine sources matched talent from a network of 500,000+ professionals.",
   },
   {
     step: "02",
-    title: "Sourcing",
-    description: "Proprietary AI engine sources matched talent from a network of 500,000+ professionals.",
+    title: "Screening",
+    description: "We rigorously screen the sourced pool against your exact role requirements.",
   },
   {
     step: "03",
