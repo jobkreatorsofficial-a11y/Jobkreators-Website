@@ -8,6 +8,7 @@ import AIDashboard from "@/components/home/AIDashboard";
 import ProcessSteps from "@/components/home/ProcessSteps";
 import LogoWall from "@/components/home/LogoWall";
 import Testimonials from "@/components/home/Testimonials";
+import ForJobSeekers from "@/components/home/ForJobSeekers";
 import FounderSection from "@/components/home/FounderSection";
 import CandidateCTA from "@/components/home/CandidateCTA";
 import JsonLd from "@/components/JsonLd";
@@ -68,6 +69,7 @@ export default function HomePage() {
         <ProcessSteps />
         <LogoWall />
         <Testimonials />
+        <ForJobSeekers />
         <FounderSection />
         <CandidateCTA />
       </main>

@@ -7,6 +7,18 @@ const nextConfig: NextConfig = {
     // defaults images.qualities to [75], so 95 must be allow-listed.
     qualities: [75, 95],
   },
+  // The old employer form at /submit-role is superseded by
+  // /for-employers/submit-role. Keep external links (email signatures, prior
+  // shares, indexed URLs) working with a permanent 301.
+  async redirects() {
+    return [
+      {
+        source: "/submit-role",
+        destination: "/for-employers/submit-role",
+        statusCode: 301,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -120,7 +120,7 @@ export default function ContactPage() {
               <div className="p-10 rounded-2xl border border-border bg-surface-2 text-center">
                 <h2 className="text-2xl font-bold font-display text-text mb-3">Hiring someone?</h2>
                 <p className="text-text-muted mb-6">Submit your role and get a curated shortlist in 5-8 days.</p>
-                <Link href="/submit-role" className="inline-flex items-center gap-2 bg-accent text-accent-fg font-bold px-6 py-3 rounded-full hover:bg-accent-2 transition-all">
+                <Link href="/for-employers/submit-role" className="inline-flex items-center gap-2 bg-accent text-accent-fg font-bold px-6 py-3 rounded-full hover:bg-accent-2 transition-all">
                   Submit a Role <ArrowRight size={16} />
                 </Link>
               </div>

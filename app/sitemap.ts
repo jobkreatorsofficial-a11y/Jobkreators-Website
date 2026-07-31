@@ -15,7 +15,7 @@ const ROUTES: Entry[] = [
   { path: "/jobs", changeFrequency: "daily", priority: 0.9 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.6 },
   { path: "/submit-cv", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/submit-role", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/for-employers/submit-role", changeFrequency: "monthly", priority: 0.7 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];

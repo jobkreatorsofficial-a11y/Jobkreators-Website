@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import ThemeProvider from "@/components/ui/ThemeProvider";
+import ChatWidget from "@/components/chat/ChatWidget";
 import "./globals.css";
 
 // Body font.
@@ -71,6 +72,8 @@ export default function RootLayout({
             Skip to content
           </a>
           {children}
+          {/* Floating assistant — self-hides on /admin (see ChatWidget). */}
+          <ChatWidget />
         </ThemeProvider>
       </body>
     </html>

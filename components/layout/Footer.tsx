@@ -56,7 +56,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/submit-role" className="text-body-sm text-text-muted transition-colors hover:text-text">
+                <Link href="/for-employers/submit-role" className="text-body-sm text-text-muted transition-colors hover:text-text">
                   Submit a Role
                 </Link>
               </li>

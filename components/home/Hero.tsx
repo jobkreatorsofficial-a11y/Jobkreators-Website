@@ -71,7 +71,7 @@ export default function Hero() {
             </motion.p>
 
             <motion.div {...fade(0.15)} className="flex flex-wrap gap-3">
-              <Link href="/submit-role" className={buttonClasses("primary", "lg")}>
+              <Link href="/for-employers/submit-role" className={buttonClasses("primary", "lg")}>
                 <ArrowRight size={BUTTON_ICON_SIZE.lg} aria-hidden />
                 Submit a Role
               </Link>
@@ -85,6 +85,22 @@ export default function Hero() {
                 WhatsApp Us
               </a>
             </motion.div>
+
+            {/* Candidate touchpoint — subtle secondary path for job seekers. */}
+            <motion.p {...fade(0.18)} className="text-body-sm text-text-muted">
+              Are you a candidate?{" "}
+              <Link
+                href="/submit-cv"
+                className="group/cv inline-flex items-center gap-1 font-medium text-accent underline-offset-4 hover:underline"
+              >
+                Submit your CV
+                <ArrowRight
+                  size={14}
+                  className="transition-transform group-hover/cv:translate-x-0.5"
+                  aria-hidden
+                />
+              </Link>
+            </motion.p>
 
             {/* Trust strip */}
             <motion.ul
