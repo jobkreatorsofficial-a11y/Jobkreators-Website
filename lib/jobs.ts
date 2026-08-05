@@ -1,29 +1,10 @@
-// Job data access + display formatting over the Phase 1 mock. Phase 2 swaps the
-// MOCK_JOBS source for a DB read behind these same function signatures.
+// Pure, client-safe display formatting for jobs. Data access moved to db/queries.ts
+// (getActiveJobs / getJobBySlug / getRelatedJobs) in Phase 2C so public pages read
+// Neon. This module stays free of any DB/server imports so client components (e.g.
+// ChatWidget) can use the formatters.
 
-import { MOCK_JOBS } from "@/lib/mock";
 import { CITY_LABELS, DEPARTMENT_LABELS, JOB_TYPE_LABELS } from "@/lib/constants";
 import type { Job, City } from "@/lib/schema";
-
-/** Jobs visible to the public seeker site — active only (closed/draft are admin-only). */
-export function getPublicJobs(): Job[] {
-  return MOCK_JOBS.filter((j) => j.status === "active");
-}
-
-export function getJobBySlug(slug: string): Job | undefined {
-  return MOCK_JOBS.find((j) => j.slug === slug);
-}
-
-/** "Also open at <company>" (preferred) → else similar by department. */
-export function getRelatedJobs(job: Job, limit = 3): { jobs: Job[]; sameCompany: boolean } {
-  const pool = getPublicJobs().filter((j) => j.id !== job.id);
-  const sameCompany = pool.filter((j) => j.company === job.company);
-  if (sameCompany.length > 0) return { jobs: sameCompany.slice(0, limit), sameCompany: true };
-  const sameDept = pool.filter((j) => j.department === job.department);
-  return { jobs: (sameDept.length ? sameDept : pool).slice(0, limit), sameCompany: false };
-}
-
-// ---- Display formatting (deterministic — safe for SSR, no Date.now()) ----
 
 export function formatSalary(min: number | null, max: number | null): string {
   if (min == null || max == null) return "Competitive";

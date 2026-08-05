@@ -6,7 +6,7 @@ import Container from "@/components/ui/Container";
 import Eyebrow from "@/components/ui/Eyebrow";
 import JobsBrowser from "@/components/jobs/JobsBrowser";
 import JobsGridSkeleton from "@/components/jobs/JobsGridSkeleton";
-import { getPublicJobs } from "@/lib/jobs";
+import { getActiveJobs } from "@/db/queries";
 
 export const metadata: Metadata = {
   title: "Open Roles — JOBKREATORS",
@@ -15,8 +15,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/jobs" },
 };
 
-export default function JobsPage() {
-  const jobs = getPublicJobs();
+// ISR: rebuild at most once a minute; admin mutations also revalidate on demand.
+export const revalidate = 60;
+
+export default async function JobsPage() {
+  const jobs = await getActiveJobs();
 
   return (
     <>

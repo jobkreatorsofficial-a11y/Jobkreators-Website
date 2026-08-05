@@ -6,10 +6,15 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/ui/Container";
 import ApplicationForm from "@/components/jobs/ApplicationForm";
-import { getJobBySlug, getPublicJobs, citiesLabel, jobTypeLabel } from "@/lib/jobs";
+import { citiesLabel, jobTypeLabel } from "@/lib/jobs";
+import { getJobBySlug, getActiveJobs } from "@/db/queries";
 
-export function generateStaticParams() {
-  return getPublicJobs().map((j) => ({ slug: j.slug }));
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const jobs = await getActiveJobs();
+  return jobs.map((j) => ({ slug: j.slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const job = getJobBySlug(slug);
+  const job = await getJobBySlug(slug);
   return {
     title: job ? `Apply — ${job.title} at ${job.company} — JOBKREATORS` : "Apply — JOBKREATORS",
     robots: { index: false }, // application pages aren't for indexing
@@ -33,7 +38,7 @@ export default async function ApplyPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  const job = getJobBySlug(slug);
+  const job = await getJobBySlug(slug);
   if (!job || job.status !== "active") notFound();
 
   // Optional prefill from the chatbot (?city=&exp=&salary=).

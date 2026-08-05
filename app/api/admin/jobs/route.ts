@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/api/admin-auth";
 import { listJobs, insertJob } from "@/db/queries";
 import { createJobSchema } from "@/lib/validators/admin";
 import { badRequest, serverError, numParam, enumParam } from "@/lib/api";
+import { revalidateJobs } from "@/lib/revalidate-jobs";
 import { JOB_STATUSES, DEPARTMENTS, CITIES } from "@/lib/constants";
 
 // GET /api/admin/jobs — list with ?status &department &city &search &limit &offset
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return badRequest("Validation failed", parsed.error.flatten());
   try {
     const job = await insertJob(parsed.data);
+    revalidateJobs(job.slug);
     return NextResponse.json(job, { status: 201 });
   } catch (err) {
     return serverError(err);

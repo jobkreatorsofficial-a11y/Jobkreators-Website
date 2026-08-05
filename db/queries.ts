@@ -102,13 +102,37 @@ export async function patchJob(id: string, patch: Partial<NewJob>): Promise<Job 
   return row;
 }
 
-export async function removeJob(id: string): Promise<void> {
-  await db.delete(jobs).where(eq(jobs.id, id));
+// Deletes return the removed slug(s) so callers can revalidate those public pages.
+export async function removeJob(id: string): Promise<string | undefined> {
+  const [row] = await db.delete(jobs).where(eq(jobs.id, id)).returning({ slug: jobs.slug });
+  return row?.slug;
 }
 
-export async function removeJobs(ids: string[]): Promise<void> {
-  if (ids.length === 0) return;
-  await db.delete(jobs).where(inArray(jobs.id, ids));
+export async function removeJobs(ids: string[]): Promise<string[]> {
+  if (ids.length === 0) return [];
+  const rows = await db.delete(jobs).where(inArray(jobs.id, ids)).returning({ slug: jobs.slug });
+  return rows.map((r) => r.slug);
+}
+
+// --- Public reads (the /jobs pages + the public GET /api/jobs) ---
+/** Active jobs only, newest first — what the public seeker site shows. */
+export function getActiveJobs(): Promise<Job[]> {
+  return db.select().from(jobs).where(eq(jobs.status, "active")).orderBy(desc(jobs.postedAt));
+}
+
+/** A single job by slug (any status — the page decides whether to 404). */
+export async function getJobBySlug(slug: string): Promise<Job | undefined> {
+  const [row] = await db.select().from(jobs).where(eq(jobs.slug, slug)).limit(1);
+  return row;
+}
+
+/** "Also open at <company>" (preferred) → else similar by department. */
+export async function getRelatedJobs(job: Job, limit = 3): Promise<{ jobs: Job[]; sameCompany: boolean }> {
+  const pool = (await getActiveJobs()).filter((j) => j.id !== job.id);
+  const sameCompany = pool.filter((j) => j.company === job.company);
+  if (sameCompany.length > 0) return { jobs: sameCompany.slice(0, limit), sameCompany: true };
+  const sameDept = pool.filter((j) => j.department === job.department);
+  return { jobs: (sameDept.length ? sameDept : pool).slice(0, limit), sameCompany: false };
 }
 
 // --- Applications (created via the public flow in 2C; admin reads + updates) ---

@@ -4,7 +4,7 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle, X, Send, Bot, UploadCloud, FileText, RotateCcw } from "lucide-react";
 import { CITIES, CITY_LABELS } from "@/lib/constants";
-import { getPublicJobs, formatSalary, citiesLabel } from "@/lib/jobs";
+import { formatSalary, citiesLabel } from "@/lib/jobs";
 import { validateCv, CV_ACCEPT } from "@/lib/forms";
 import type { Job, City, Department } from "@/lib/schema";
 
@@ -17,8 +17,6 @@ import type { Job, City, Department } from "@/lib/schema";
  *
  * TODO Phase 2: swap the scripted responder for a real LLM behind the same steps.
  */
-
-const JOBS = getPublicJobs();
 
 type Step = "intro" | "role" | "experience" | "cities" | "salary" | "recommendations" | "fallback" | "done";
 type Msg = { role: "user" | "assistant"; content: string; jobs?: Job[] };
@@ -81,10 +79,10 @@ const ROLE_DEPT: { re: RegExp; dept: Department }[] = [
   { re: /customer success|support/i, dept: "customer-success" },
 ];
 
-function recommend(ctx: Ctx): Job[] {
+function recommend(ctx: Ctx, jobs: Job[]): Job[] {
   const dept = ctx.desiredRole ? ROLE_DEPT.find((r) => r.re.test(ctx.desiredRole!))?.dept : undefined;
   const role = ctx.desiredRole?.toLowerCase() ?? "";
-  return JOBS.map((j) => {
+  return jobs.map((j) => {
     let score = 0;
     if (dept && j.department === dept) score += 5;
     if (role && j.title.toLowerCase().includes(role)) score += 4;
@@ -122,6 +120,7 @@ export default function ChatWidget() {
   const [fb, setFb] = useState({ name: "", email: "", phone: "" });
   const [cv, setCv] = useState<File | null>(null);
   const [cvErr, setCvErr] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const timeoutRef = useRef<number | undefined>(undefined);
   const threadRef = useRef<HTMLDivElement>(null);
 
@@ -131,6 +130,20 @@ export default function ChatWidget() {
   }, [state.messages, state.typing]);
 
   useEffect(() => () => window.clearTimeout(timeoutRef.current), []);
+
+  // Lazily load active jobs (from the DB) the first time the widget opens — the
+  // matcher recommends from these, so admin-created jobs show up immediately.
+  useEffect(() => {
+    if (!state.open || jobs.length) return;
+    let alive = true;
+    fetch("/api/jobs")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Job[]) => alive && setJobs(data))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [state.open, jobs.length]);
 
   // Hidden on the admin portal.
   if (pathname.startsWith("/admin")) return null;
@@ -166,7 +179,7 @@ export default function ChatWidget() {
   const answerSalary = (label: string, val: number | null) => {
     const patch: Ctx = val != null ? { minSalaryLpa: val } : {};
     dispatch({ type: "user", content: label, ctx: patch });
-    const recs = recommend({ ...state.ctx, ...patch });
+    const recs = recommend({ ...state.ctx, ...patch }, jobs);
     const content = recs.length
       ? "Here are the roles that best fit your background:"
       : "I couldn't find a strong match right now — let me take your CV instead.";

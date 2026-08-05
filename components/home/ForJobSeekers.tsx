@@ -5,7 +5,7 @@ import Container from "@/components/ui/Container";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Reveal from "@/components/ui/Reveal";
 import { buttonClasses, BUTTON_ICON_SIZE } from "@/components/ui/buttonClasses";
-import { getPublicJobs } from "@/lib/jobs";
+import { getActiveJobs } from "@/db/queries";
 
 const POINTS = [
   { icon: Search, text: "Browse live roles across India, filtered to what fits you." },
@@ -13,8 +13,8 @@ const POINTS = [
   { icon: BadgeCheck, text: "Always 100% free for candidates. A real recruiter reviews every application." },
 ];
 
-export default function ForJobSeekers() {
-  const openCount = getPublicJobs().length;
+export default async function ForJobSeekers() {
+  const openCount = (await getActiveJobs()).length;
 
   return (
     <Section surface="subtle">

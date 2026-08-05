@@ -16,6 +16,10 @@ import { SITE, FOUNDER } from "@/lib/data";
 
 const SITE_URL = "https://jobkreators.com";
 
+// ForJobSeekers reads the live open-role count from Neon, so ISR the homepage
+// (≤60s stale) instead of letting that read make the whole page dynamic.
+export const revalidate = 60;
+
 // Organization + LocalBusiness structured data (Agra HQ).
 const ORG_SCHEMA = {
   "@context": "https://schema.org",

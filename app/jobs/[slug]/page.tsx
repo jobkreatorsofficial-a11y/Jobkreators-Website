@@ -8,9 +8,6 @@ import Container from "@/components/ui/Container";
 import JobCard from "@/components/jobs/JobCard";
 import ShareButtons from "@/components/jobs/ShareButtons";
 import {
-  getJobBySlug,
-  getPublicJobs,
-  getRelatedJobs,
   formatSalary,
   formatExperience,
   formatAgeRange,
@@ -20,10 +17,17 @@ import {
   departmentLabel,
   jobTypeLabel,
 } from "@/lib/jobs";
+import { getJobBySlug, getActiveJobs, getRelatedJobs } from "@/db/queries";
 import type { Job, JobType } from "@/lib/schema";
 
-export function generateStaticParams() {
-  return getPublicJobs().map((j) => ({ slug: j.slug }));
+// ISR + render slugs not prebuilt (new jobs) on first request; admin mutations
+// also revalidate on demand.
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const jobs = await getActiveJobs();
+  return jobs.map((j) => ({ slug: j.slug }));
 }
 
 export async function generateMetadata({
@@ -32,7 +36,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const job = getJobBySlug(slug);
+  const job = await getJobBySlug(slug);
   if (!job) return { title: "Role not found — JOBKREATORS" };
   return {
     title: `${job.title} at ${job.company} — JOBKREATORS`,
@@ -43,10 +47,10 @@ export async function generateMetadata({
 
 export default async function JobDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const job = getJobBySlug(slug);
+  const job = await getJobBySlug(slug);
   if (!job || job.status !== "active") notFound();
 
-  const { jobs: related, sameCompany } = getRelatedJobs(job);
+  const { jobs: related, sameCompany } = await getRelatedJobs(job);
   const applyHref = `/jobs/${job.slug}/apply`;
 
   const ageRange = formatAgeRange(job.minAge, job.maxAge);

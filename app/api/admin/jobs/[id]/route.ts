@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/api/admin-auth";
 import { getJob, patchJob, removeJob } from "@/db/queries";
 import { updateJobSchema } from "@/lib/validators/admin";
 import { badRequest, notFound, serverError } from "@/lib/api";
+import { revalidateJobs } from "@/lib/revalidate-jobs";
 
 // GET /api/admin/jobs/[id]
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -31,8 +32,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const parsed = updateJobSchema.safeParse(body);
   if (!parsed.success) return badRequest("Validation failed", parsed.error.flatten());
   try {
+    const before = await getJob(id); // capture the old slug in case it changed
     const job = await patchJob(id, parsed.data);
-    return job ? NextResponse.json(job) : notFound("Job not found");
+    if (!job) return notFound("Job not found");
+    // Revalidate old + new slug (handles rename and active→closed).
+    revalidateJobs(before?.slug, job.slug);
+    return NextResponse.json(job);
   } catch (err) {
     return serverError(err);
   }
@@ -44,7 +49,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if ("error" in gate) return gate.error;
   const { id } = await params;
   try {
-    await removeJob(id);
+    const slug = await removeJob(id); // returns the deleted slug
+    revalidateJobs(slug); // detail page now 404s; listing drops it
     return NextResponse.json({ deleted: id });
   } catch (err) {
     return serverError(err);
