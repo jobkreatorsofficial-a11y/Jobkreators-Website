@@ -4,8 +4,8 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, Download, X } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge } from "@/components/admin/ui";
+import { useApplications, useJobs, useUpdateApplication } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, ErrorState, LoadingState } from "@/components/admin/ui";
 import { APPLICATION_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/jobs";
 import type { ApplicationStatus } from "@/lib/schema";
@@ -21,7 +21,11 @@ export default function AdminApplicationsPage() {
 function ApplicationsInner() {
   const searchParams = useSearchParams();
   const jobFilter = searchParams.get("job"); // set by the edit-job "N applications" link
-  const { applications, jobs, setApplicationStatus } = useAdmin();
+  const appsQuery = useApplications();
+  const { data: jobs } = useJobs();
+  const updateApp = useUpdateApplication();
+
+  const applications = useMemo(() => appsQuery.data ?? [], [appsQuery.data]);
 
   const [status, setStatus] = useState<ApplicationStatus | "all">("all");
   const [q, setQ] = useState("");
@@ -30,7 +34,7 @@ function ApplicationsInner() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<ApplicationStatus | "">("");
 
-  const jobTitle = jobFilter ? jobs.find((j) => j.id === jobFilter)?.title : null;
+  const jobTitle = jobFilter ? jobs?.find((j) => j.id === jobFilter)?.title : null;
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -53,14 +57,14 @@ function ApplicationsInner() {
     });
   const applyBulk = () => {
     if (!bulkStatus) return;
-    selected.forEach((id) => setApplicationStatus(id, bulkStatus));
+    selected.forEach((id) => updateApp.mutate({ id, status: bulkStatus }));
     setSelected(new Set());
     setBulkStatus("");
   };
 
   return (
     <>
-      <AdminPageHeader title="Applications" description={`${applications.length} total`} />
+      <AdminPageHeader title="Applications" description={appsQuery.data ? `${applications.length} total` : undefined} />
 
       {jobTitle && (
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-3 py-1.5 text-body-sm">
@@ -122,79 +126,85 @@ function ApplicationsInner() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-left text-body-sm">
-          <thead>
-            <tr className="border-b border-border text-caption uppercase tracking-wide text-text-subtle">
-              <th className="px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={() => setSelected(allSelected ? new Set() : new Set(filtered.map((a) => a.id)))}
-                  aria-label="Select all"
-                />
-              </th>
-              <th className="px-4 py-3 font-medium">Candidate</th>
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Submitted</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-text-subtle">
-                  No applications match.
-                </td>
+      {appsQuery.isLoading ? (
+        <LoadingState rows={6} />
+      ) : appsQuery.isError ? (
+        <ErrorState message={(appsQuery.error as Error)?.message} onRetry={() => appsQuery.refetch()} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <table className="w-full text-left text-body-sm">
+            <thead>
+              <tr className="border-b border-border text-caption uppercase tracking-wide text-text-subtle">
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={() => setSelected(allSelected ? new Set() : new Set(filtered.map((a) => a.id)))}
+                    aria-label="Select all"
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium">Candidate</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Submitted</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
-            )}
-            {filtered.map((a) => (
-              <tr key={a.id} className="border-b border-border last:border-0 hover:bg-surface-2/50">
-                <td className="px-4 py-3">
-                  <input type="checkbox" checked={selected.has(a.id)} onChange={() => toggle(a.id)} aria-label={`Select ${a.candidateName}`} />
-                </td>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/applications/${a.id}`} className="font-medium text-text hover:text-accent">
-                    {a.candidateName}
-                  </Link>
-                  <div className="text-caption text-text-subtle">{a.candidateEmail}</div>
-                </td>
-                <td className="px-4 py-3 text-text-muted">{a.jobTitle ? `${a.jobTitle} · ${a.jobCompany}` : "General"}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-text-muted">{formatDate(a.submittedAt)}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={a.status} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    <select
-                      value={a.status}
-                      onChange={(e) => setApplicationStatus(a.id, e.target.value as ApplicationStatus)}
-                      className="h-8 rounded-lg border border-border bg-surface px-2 text-caption text-text focus:border-accent focus:outline-none"
-                      aria-label="Update status"
-                    >
-                      {APPLICATION_STATUSES.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                    <a
-                      href={a.cvFileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-accent"
-                      aria-label="Download CV"
-                    >
-                      <Download size={16} aria-hidden />
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-text-subtle">
+                    No applications match.
+                  </td>
+                </tr>
+              )}
+              {filtered.map((a) => (
+                <tr key={a.id} className="border-b border-border last:border-0 hover:bg-surface-2/50">
+                  <td className="px-4 py-3">
+                    <input type="checkbox" checked={selected.has(a.id)} onChange={() => toggle(a.id)} aria-label={`Select ${a.candidateName}`} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/applications/${a.id}`} className="font-medium text-text hover:text-accent">
+                      {a.candidateName}
+                    </Link>
+                    <div className="text-caption text-text-subtle">{a.candidateEmail}</div>
+                  </td>
+                  <td className="px-4 py-3 text-text-muted">{a.jobTitle ? `${a.jobTitle} · ${a.jobCompany}` : "General"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-text-muted">{formatDate(a.submittedAt)}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={a.status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <select
+                        value={a.status}
+                        onChange={(e) => updateApp.mutate({ id: a.id, status: e.target.value as ApplicationStatus })}
+                        className="h-8 rounded-lg border border-border bg-surface px-2 text-caption text-text focus:border-accent focus:outline-none"
+                        aria-label="Update status"
+                      >
+                        {APPLICATION_STATUSES.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                      <a
+                        href={a.cvFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-accent"
+                        aria-label="Download CV"
+                      >
+                        <Download size={16} aria-hidden />
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }

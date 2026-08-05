@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
+import { useCreateJob, useInquiries } from "@/lib/admin/hooks";
 import { AdminPageHeader } from "@/components/admin/ui";
 import JobForm from "@/components/admin/JobForm";
 import type { Job } from "@/lib/schema";
@@ -20,11 +20,12 @@ export default function NewJobPage() {
 function NewJobInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { createJob, inquiries } = useAdmin();
+  const createJob = useCreateJob();
+  const { data: inquiries } = useInquiries();
 
   // Optional prefill from an employer inquiry ("Create job post from this").
   const fromInquiry = searchParams.get("fromInquiry");
-  const inquiry = fromInquiry ? inquiries.find((i) => i.id === fromInquiry) : undefined;
+  const inquiry = fromInquiry ? inquiries?.find((i) => i.id === fromInquiry) : undefined;
   const seed: Partial<Job> | undefined = inquiry
     ? {
         title: inquiry.roleTitle,
@@ -52,12 +53,16 @@ function NewJobInner() {
         title="Create job"
         description={inquiry ? `Prefilled from ${inquiry.companyName}'s inquiry.` : "Publish immediately or save as a draft."}
       />
+
+      {createJob.isError && (
+        <p className="mb-4 rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-body-sm text-danger">
+          Couldn&apos;t save: {(createJob.error as Error).message}
+        </p>
+      )}
+
       <JobForm
         seed={seed}
-        onSave={(job) => {
-          createJob(job);
-          router.push("/admin/jobs");
-        }}
+        onSave={(job) => createJob.mutate(job, { onSuccess: () => router.push("/admin/jobs") })}
       />
     </>
   );

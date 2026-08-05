@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ExternalLink, FileText, Plus, Lock } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge, formatDateTime } from "@/components/admin/ui";
+import { useInquiry, useSetInquiryStatus } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, LoadingState, formatDateTime } from "@/components/admin/ui";
 import { EMPLOYER_INQUIRY_STATUSES } from "@/lib/constants";
 import { departmentLabel, cityLabel, jobTypeLabel, formatSalary, formatExperience } from "@/lib/jobs";
 import type { EmployerInquiryStatus } from "@/lib/schema";
 
 export default function InquiryDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { inquiries, setInquiryStatus } = useAdmin();
-  const inq = inquiries.find((i) => i.id === id);
+  const inquiryQuery = useInquiry(id);
+  const setInquiryStatus = useSetInquiryStatus();
 
-  if (!inq) {
+  if (inquiryQuery.isLoading) return <LoadingState rows={5} />;
+
+  const inq = inquiryQuery.data;
+  if (inquiryQuery.isError || !inq) {
     return (
       <div className="rounded-xl border border-dashed border-border-strong bg-surface-2 px-6 py-16 text-center">
         <p className="text-h4 font-semibold text-text">Inquiry not found</p>
@@ -93,7 +96,7 @@ export default function InquiryDetailPage() {
           <Card title="Status">
             <select
               value={inq.status}
-              onChange={(e) => setInquiryStatus(inq.id, e.target.value as EmployerInquiryStatus)}
+              onChange={(e) => setInquiryStatus.mutate({ id: inq.id, status: e.target.value as EmployerInquiryStatus })}
               className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-body-sm text-text focus:border-accent focus:outline-none"
             >
               {EMPLOYER_INQUIRY_STATUSES.map((s) => (

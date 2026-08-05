@@ -238,3 +238,20 @@ Every section is built from these (in `components/ui/` unless noted):
 - **`<Container />`** — `max-w-7xl`, centered, `px-6 md:px-8`, optional `size`.
 - **`<Eyebrow />`** — uppercase label on the `eyebrow` token, optional pulsing
   accent status dot.
+
+## Data model (Phase 2 backend)
+
+- **Salary/LPA columns are `integer`, deliberately — do NOT "improve" them to
+  `numeric`/`decimal`.** Real Indian CTCs are always quoted in whole lakhs, so
+  fractional LPA is never needed; `integer` also keeps the inferred TS type a
+  clean `number` (Drizzle returns `numeric` as `string`, which would break the
+  `number` contract in `lib/schema` / `db/types`). Decided Phase 2A.
+- **`avgTimeToFill` is computed as `(updated_at - submitted_at)` on hired
+  applications — it measures recruiter decision speed, not job-open duration. Do
+  NOT change without reviewing dashboard semantics.** (Lives in `getStats()` in
+  `db/queries.ts`; surfaced on the admin dashboard. Decided Phase 2B.)
+- **Timestamp columns use `mode: "string"`, returning Postgres-native format
+  `'YYYY-MM-DD HH:mm:ss+00'` (not ISO-8601) on read.** The display helpers
+  (`formatDate` in `lib/jobs.ts`, `formatDateTime` in `components/admin/ui.tsx`)
+  slice-parse both this and ISO-8601, so display is correct either way. Any
+  strict-ISO consumer must parse/normalise before use. Decided Phase 2A/2B.

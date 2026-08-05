@@ -1,0 +1,1 @@
+ALTER TABLE "job_applications" ADD COLUMN "internal_notes" text;

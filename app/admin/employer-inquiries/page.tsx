@@ -1,14 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge, Table } from "@/components/admin/ui";
+import { useInquiries } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, Table, ErrorState, LoadingState } from "@/components/admin/ui";
 import { EMPLOYER_INQUIRY_STATUSES } from "@/lib/constants";
 import { formatDate } from "@/lib/jobs";
 import type { EmployerInquiryStatus } from "@/lib/schema";
 
 export default function AdminEmployerInquiriesPage() {
-  const { inquiries } = useAdmin();
+  const inquiriesQuery = useInquiries();
+  const inquiries = useMemo(() => inquiriesQuery.data ?? [], [inquiriesQuery.data]);
   const [status, setStatus] = useState<EmployerInquiryStatus | "all">("all");
 
   const filtered = useMemo(
@@ -21,7 +22,7 @@ export default function AdminEmployerInquiriesPage() {
 
   return (
     <>
-      <AdminPageHeader title="Employer inquiries" description={`${inquiries.length} total`} />
+      <AdminPageHeader title="Employer inquiries" description={inquiriesQuery.data ? `${inquiries.length} total` : undefined} />
 
       <div className="mb-4 inline-flex flex-wrap rounded-lg border border-border bg-surface p-1">
         {(["all", ...EMPLOYER_INQUIRY_STATUSES.map((s) => s.value)] as (EmployerInquiryStatus | "all")[]).map((s) => (
@@ -38,24 +39,30 @@ export default function AdminEmployerInquiriesPage() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-border bg-surface">
-        <Table
-          head={["Company", "Contact", "Role", "Openings", "Submitted", "Status"]}
-          emptyText="No inquiries match."
-          rows={filtered.map((i) => ({
-            key: i.id,
-            href: `/admin/employer-inquiries/${i.id}`,
-            cells: [
-              <span key="c" className="font-medium text-text">{i.companyName}</span>,
-              `${i.contactPerson} · ${i.designation}`,
-              i.roleTitle,
-              String(i.openings),
-              formatDate(i.submittedAt),
-              <StatusBadge key="s" status={i.status} />,
-            ],
-          }))}
-        />
-      </div>
+      {inquiriesQuery.isLoading ? (
+        <LoadingState rows={5} />
+      ) : inquiriesQuery.isError ? (
+        <ErrorState message={(inquiriesQuery.error as Error)?.message} onRetry={() => inquiriesQuery.refetch()} />
+      ) : (
+        <div className="rounded-xl border border-border bg-surface">
+          <Table
+            head={["Company", "Contact", "Role", "Openings", "Submitted", "Status"]}
+            emptyText="No inquiries match."
+            rows={filtered.map((i) => ({
+              key: i.id,
+              href: `/admin/employer-inquiries/${i.id}`,
+              cells: [
+                <span key="c" className="font-medium text-text">{i.companyName}</span>,
+                `${i.contactPerson} · ${i.designation}`,
+                i.roleTitle,
+                String(i.openings),
+                formatDate(i.submittedAt),
+                <StatusBadge key="s" status={i.status} />,
+              ],
+            }))}
+          />
+        </div>
+      )}
     </>
   );
 }

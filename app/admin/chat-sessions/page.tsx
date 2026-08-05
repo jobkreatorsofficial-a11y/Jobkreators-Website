@@ -2,14 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, User, Bot } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge, formatDateTime } from "@/components/admin/ui";
+import { useChatSessions } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, ErrorState, LoadingState, formatDateTime } from "@/components/admin/ui";
 import type { ChatSession } from "@/lib/schema";
 
 const STATUSES = ["all", "active", "cv-submitted", "closed"] as const;
 
 export default function AdminChatSessionsPage() {
-  const { chatSessions } = useAdmin();
+  const sessionsQuery = useChatSessions();
+  const chatSessions = useMemo(() => sessionsQuery.data ?? [], [sessionsQuery.data]);
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -23,7 +24,7 @@ export default function AdminChatSessionsPage() {
 
   return (
     <>
-      <AdminPageHeader title="Chat sessions" description={`${chatSessions.length} total`} />
+      <AdminPageHeader title="Chat sessions" description={sessionsQuery.data ? `${chatSessions.length} total` : undefined} />
 
       <div className="mb-4 inline-flex flex-wrap rounded-lg border border-border bg-surface p-1">
         {STATUSES.map((s) => (
@@ -40,38 +41,44 @@ export default function AdminChatSessionsPage() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-3">
-        {filtered.length === 0 && (
-          <p className="rounded-xl border border-border bg-surface px-5 py-10 text-center text-body-sm text-text-subtle">
-            No sessions match.
-          </p>
-        )}
-        {filtered.map((s) => {
-          const open = openId === s.id;
-          const who = s.candidateContext.name || s.candidateContext.email || "Anonymous visitor";
-          return (
-            <div key={s.id} className="overflow-hidden rounded-xl border border-border bg-surface">
-              <button
-                type="button"
-                onClick={() => setOpenId(open ? null : s.id)}
-                aria-expanded={open}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-surface-2/50"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-body-sm font-medium text-text">{who}</p>
-                  <p className="text-caption text-text-subtle">
-                    {s.messages.length} messages · last active {formatDateTime(s.updatedAt)}
-                  </p>
-                </div>
-                <StatusBadge status={s.status} />
-                <ChevronDown size={18} className={`shrink-0 text-text-subtle transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
-              </button>
+      {sessionsQuery.isLoading ? (
+        <LoadingState rows={4} />
+      ) : sessionsQuery.isError ? (
+        <ErrorState message={(sessionsQuery.error as Error)?.message} onRetry={() => sessionsQuery.refetch()} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filtered.length === 0 && (
+            <p className="rounded-xl border border-border bg-surface px-5 py-10 text-center text-body-sm text-text-subtle">
+              No sessions match.
+            </p>
+          )}
+          {filtered.map((s) => {
+            const open = openId === s.id;
+            const who = s.candidateContext.name || s.candidateContext.email || "Anonymous visitor";
+            return (
+              <div key={s.id} className="overflow-hidden rounded-xl border border-border bg-surface">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(open ? null : s.id)}
+                  aria-expanded={open}
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-surface-2/50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-body-sm font-medium text-text">{who}</p>
+                    <p className="text-caption text-text-subtle">
+                      {s.messages.length} messages · last active {formatDateTime(s.updatedAt)}
+                    </p>
+                  </div>
+                  <StatusBadge status={s.status} />
+                  <ChevronDown size={18} className={`shrink-0 text-text-subtle transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+                </button>
 
-              {open && <Conversation session={s} />}
-            </div>
-          );
-        })}
-      </div>
+                {open && <Conversation session={s} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

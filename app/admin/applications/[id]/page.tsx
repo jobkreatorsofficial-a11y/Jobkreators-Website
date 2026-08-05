@@ -1,26 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Download, ExternalLink, FileText } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge, formatDateTime } from "@/components/admin/ui";
+import { useApplication, useUpdateApplication } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, LoadingState, formatDateTime } from "@/components/admin/ui";
 import { APPLICATION_STATUSES } from "@/lib/constants";
 import { cityLabel } from "@/lib/jobs";
 import type { ApplicationStatus } from "@/lib/schema";
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { applications, setApplicationStatus } = useAdmin();
-  const app = applications.find((a) => a.id === id);
-  const [note, setNote] = useState("");
+  const appQuery = useApplication(id);
+  const updateApp = useUpdateApplication();
+  const noteRef = useRef<HTMLTextAreaElement>(null);
 
-  if (!app) {
-    return (
-      <NotFound />
-    );
-  }
+  if (appQuery.isLoading) return <LoadingState rows={6} />;
+
+  const app = appQuery.data;
+  if (appQuery.isError || !app) return <NotFound />;
 
   const ext = app.cvFileName.split(".").pop()?.toUpperCase() ?? "FILE";
   const lpa = (n: number | null) => (n != null ? `₹${n} LPA` : "—");
@@ -64,8 +63,7 @@ export default function ApplicationDetailPage() {
             )}
           </Card>
 
-          {/* CV — Phase 1 has no file storage, so this is a placeholder (same
-              visual weight as the eventual preview). Phase 2 renders the real PDF. */}
+          {/* CV — Phase 1 has no file storage, so this is a placeholder. Phase 2C renders the real PDF. */}
           <Card title="CV">
             <div className="flex min-h-[440px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-surface-2 p-6 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface">
@@ -76,12 +74,12 @@ export default function ApplicationDetailPage() {
                 <p className="mt-0.5 text-caption uppercase tracking-wide text-text-subtle">{ext} file</p>
               </div>
               <p className="max-w-xs text-body-sm text-text-muted">
-                CV preview available once file storage is connected (Phase 2).
+                CV preview available once file storage is connected (Phase 2C).
               </p>
               <button
                 type="button"
                 disabled
-                title="Available in Phase 2"
+                title="Available in Phase 2C"
                 className="inline-flex h-10 cursor-not-allowed items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-4 text-body-sm font-medium text-text-subtle opacity-60"
               >
                 <Download size={15} aria-hidden /> Download CV
@@ -95,7 +93,7 @@ export default function ApplicationDetailPage() {
           <Card title="Status">
             <select
               value={app.status}
-              onChange={(e) => setApplicationStatus(app.id, e.target.value as ApplicationStatus)}
+              onChange={(e) => updateApp.mutate({ id: app.id, status: e.target.value as ApplicationStatus })}
               className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-body-sm text-text focus:border-accent focus:outline-none"
             >
               {APPLICATION_STATUSES.map((s) => (
@@ -105,34 +103,28 @@ export default function ApplicationDetailPage() {
             <label className="mt-4 block">
               <span className="mb-1.5 block text-body-sm font-semibold text-text">Internal note</span>
               <textarea
+                key={app.id}
+                ref={noteRef}
                 rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
+                defaultValue={app.internalNotes ?? ""}
                 placeholder="Add a private note…"
                 className="w-full resize-none rounded-lg border border-border bg-surface px-3 py-2 text-base text-text placeholder:text-text-subtle focus:border-accent focus:outline-none md:text-body-sm"
               />
             </label>
             <button
               type="button"
-              onClick={() => {
-                // TODO Phase 2: persist the note against the application.
-                if (process.env.NODE_ENV === "development") console.log("[admin] note", { id: app.id, note });
-                setNote("");
-              }}
-              disabled={!note.trim()}
+              onClick={() => updateApp.mutate({ id: app.id, internalNote: noteRef.current?.value ?? "" })}
+              disabled={updateApp.isPending}
               className="mt-2 inline-flex h-9 items-center rounded-lg bg-accent px-4 text-body-sm font-semibold text-accent-fg hover:bg-accent-2 disabled:opacity-40"
             >
-              Save note
+              {updateApp.isPending ? "Saving…" : "Save note"}
             </button>
           </Card>
 
           <Card title="Timeline">
-            {/* Phase 1: derived from submitted/updated. Phase 2 stores real history. */}
             <ol className="relative ml-1.5 border-l border-border pl-5">
               <TimelineItem label="Application submitted" at={app.submittedAt} />
-              {app.updatedAt !== app.submittedAt && (
-                <TimelineItem label={`Status → ${app.status}`} at={app.updatedAt} />
-              )}
+              {app.updatedAt !== app.submittedAt && <TimelineItem label={`Status → ${app.status}`} at={app.updatedAt} />}
             </ol>
           </Card>
         </div>

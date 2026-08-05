@@ -35,6 +35,7 @@ export type JobApplication = {
   cvFileUrl: string; // Cloudinary URL
   cvFileName: string; // Original filename for display
   coverMessage: string | null; // Free text from candidate
+  internalNotes: string | null; // Private recruiter note (admin-only, not shown to candidate)
   status: ApplicationStatus;
   source: "direct" | "chatbot" | "unmatched-general";
   submittedAt: string;

@@ -120,6 +120,7 @@ export default function ApplicationForm({
       cvFileUrl: `mock://cloudinary/pending/${encodeURIComponent(cvFile!.name)}`,
       cvFileName: cvFile!.name,
       coverMessage: values.coverMessage?.trim() || null,
+      internalNotes: null, // admin-only; never set from the public form
       status: "submitted",
       source: job ? "direct" : "unmatched-general",
       submittedAt: new Date().toISOString(),

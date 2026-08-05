@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 import { formatDate } from "@/lib/jobs";
 
 // Tone + label for every status value across the four enums (+ chat).
@@ -86,6 +87,39 @@ export function Table({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** Shared error panel for failed queries. */
+export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 px-6 py-14 text-center">
+      <AlertTriangle size={26} className="text-danger" aria-hidden />
+      <div>
+        <p className="text-body font-semibold text-text">Couldn&apos;t load this data</p>
+        <p className="mt-1 text-body-sm text-text-muted">{message ?? "Something went wrong talking to the server."}</p>
+      </div>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-1 inline-flex h-9 items-center rounded-lg bg-accent px-4 text-body-sm font-semibold text-accent-fg hover:bg-accent-2"
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Shared loading skeleton — a stack of shimmering rows. */
+export function LoadingState({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="flex flex-col gap-2" aria-busy="true" aria-label="Loading">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-14 animate-pulse rounded-xl border border-border bg-surface-2/60" />
+      ))}
     </div>
   );
 }

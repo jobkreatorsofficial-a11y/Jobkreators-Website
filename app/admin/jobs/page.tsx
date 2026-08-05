@@ -3,14 +3,23 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Eye, Pencil, Trash2, Lock, RotateCcw } from "lucide-react";
-import { useAdmin } from "@/components/admin/AdminProvider";
-import { AdminPageHeader, StatusBadge } from "@/components/admin/ui";
+import { useJobs, useApplications, useSetJobStatus, useDeleteJob, useDeleteJobs } from "@/lib/admin/hooks";
+import { AdminPageHeader, StatusBadge, ErrorState, LoadingState } from "@/components/admin/ui";
 import { JOB_STATUSES } from "@/lib/constants";
 import { departmentLabel, cityLabel, formatDate } from "@/lib/jobs";
 import type { JobStatus } from "@/lib/schema";
 
 export default function AdminJobsPage() {
-  const { jobs, applicationsForJob, setJobStatus, deleteJob, deleteJobs } = useAdmin();
+  const jobsQuery = useJobs();
+  const appsQuery = useApplications();
+  const setJobStatus = useSetJobStatus();
+  const deleteJob = useDeleteJob();
+  const deleteJobs = useDeleteJobs();
+
+  const jobs = useMemo(() => jobsQuery.data ?? [], [jobsQuery.data]);
+  const apps = appsQuery.data ?? [];
+  const appCount = (jobId: string) => apps.filter((a) => a.jobId === jobId).length;
+
   const [status, setStatus] = useState<JobStatus | "all">("all");
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -34,12 +43,12 @@ export default function AdminJobsPage() {
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((j) => j.id)));
 
   const bulkClose = () => {
-    selected.forEach((id) => setJobStatus(id, "closed"));
+    selected.forEach((id) => setJobStatus.mutate({ id, status: "closed" }));
     setSelected(new Set());
   };
   const bulkDelete = () => {
     if (!window.confirm(`Delete ${selected.size} job(s)? This can't be undone.`)) return;
-    deleteJobs([...selected]);
+    deleteJobs.mutate([...selected]);
     setSelected(new Set());
   };
 
@@ -47,7 +56,7 @@ export default function AdminJobsPage() {
     <>
       <AdminPageHeader
         title="Jobs"
-        description={`${jobs.length} total`}
+        description={jobsQuery.data ? `${jobs.length} total` : undefined}
         action={
           <Link
             href="/admin/jobs/new"
@@ -101,86 +110,92 @@ export default function AdminJobsPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-left text-body-sm">
-          <thead>
-            <tr className="border-b border-border text-caption uppercase tracking-wide text-text-subtle">
-              <th className="px-4 py-3">
-                <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all" />
-              </th>
-              <th className="px-4 py-3 font-medium">Title</th>
-              <th className="px-4 py-3 font-medium">Department</th>
-              <th className="px-4 py-3 font-medium">Location</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Apps</th>
-              <th className="px-4 py-3 font-medium">Posted</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-text-subtle">
-                  No jobs match.
-                </td>
+      {jobsQuery.isLoading ? (
+        <LoadingState rows={6} />
+      ) : jobsQuery.isError ? (
+        <ErrorState message={(jobsQuery.error as Error)?.message} onRetry={() => jobsQuery.refetch()} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <table className="w-full text-left text-body-sm">
+            <thead>
+              <tr className="border-b border-border text-caption uppercase tracking-wide text-text-subtle">
+                <th className="px-4 py-3">
+                  <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all" />
+                </th>
+                <th className="px-4 py-3 font-medium">Title</th>
+                <th className="px-4 py-3 font-medium">Department</th>
+                <th className="px-4 py-3 font-medium">Location</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Apps</th>
+                <th className="px-4 py-3 font-medium">Posted</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
-            )}
-            {filtered.map((job) => (
-              <tr key={job.id} className="border-b border-border last:border-0 hover:bg-surface-2/50">
-                <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(job.id)}
-                    onChange={() => toggle(job.id)}
-                    aria-label={`Select ${job.title}`}
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/jobs/${job.id}/edit`} className="font-medium text-text hover:text-accent">
-                    {job.title}
-                  </Link>
-                  <div className="text-caption text-text-subtle">{job.company}</div>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-text-muted">{departmentLabel(job.department)}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-text-muted">{cityLabel(job.city)}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={job.status} />
-                </td>
-                <td className="px-4 py-3 text-text-muted">{applicationsForJob(job.id).length}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-text-muted">{formatDate(job.postedAt)}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1">
-                    <Link href={`/jobs/${job.slug}`} target="_blank" className={iconBtn} aria-label="View public page">
-                      <Eye size={16} aria-hidden />
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-text-subtle">
+                    No jobs match.
+                  </td>
+                </tr>
+              )}
+              {filtered.map((job) => (
+                <tr key={job.id} className="border-b border-border last:border-0 hover:bg-surface-2/50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(job.id)}
+                      onChange={() => toggle(job.id)}
+                      aria-label={`Select ${job.title}`}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/jobs/${job.id}/edit`} className="font-medium text-text hover:text-accent">
+                      {job.title}
                     </Link>
-                    <Link href={`/admin/jobs/${job.id}/edit`} className={iconBtn} aria-label="Edit">
-                      <Pencil size={16} aria-hidden />
-                    </Link>
-                    {job.status === "active" ? (
-                      <button onClick={() => setJobStatus(job.id, "closed")} className={iconBtn} aria-label="Close">
-                        <Lock size={16} aria-hidden />
+                    <div className="text-caption text-text-subtle">{job.company}</div>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-text-muted">{departmentLabel(job.department)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-text-muted">{cityLabel(job.city)}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={job.status} />
+                  </td>
+                  <td className="px-4 py-3 text-text-muted">{appCount(job.id)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-text-muted">{formatDate(job.postedAt)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link href={`/jobs/${job.slug}`} target="_blank" className={iconBtn} aria-label="View public page">
+                        <Eye size={16} aria-hidden />
+                      </Link>
+                      <Link href={`/admin/jobs/${job.id}/edit`} className={iconBtn} aria-label="Edit">
+                        <Pencil size={16} aria-hidden />
+                      </Link>
+                      {job.status === "active" ? (
+                        <button onClick={() => setJobStatus.mutate({ id: job.id, status: "closed" })} className={iconBtn} aria-label="Close">
+                          <Lock size={16} aria-hidden />
+                        </button>
+                      ) : (
+                        <button onClick={() => setJobStatus.mutate({ id: job.id, status: "active" })} className={iconBtn} aria-label="Reopen">
+                          <RotateCcw size={16} aria-hidden />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Delete "${job.title}"?`)) deleteJob.mutate(job.id);
+                        }}
+                        className={`${iconBtn} hover:text-danger`}
+                        aria-label="Delete"
+                      >
+                        <Trash2 size={16} aria-hidden />
                       </button>
-                    ) : (
-                      <button onClick={() => setJobStatus(job.id, "active")} className={iconBtn} aria-label="Reopen">
-                        <RotateCcw size={16} aria-hidden />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        if (window.confirm(`Delete "${job.title}"?`)) deleteJob(job.id);
-                      }}
-                      className={`${iconBtn} hover:text-danger`}
-                      aria-label="Delete"
-                    >
-                      <Trash2 size={16} aria-hidden />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }
