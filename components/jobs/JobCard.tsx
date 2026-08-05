@@ -4,8 +4,10 @@ import type { Job } from "@/lib/schema";
 import {
   formatSalary,
   formatExperience,
+  formatAgeRange,
   formatDate,
   cityLabel,
+  citiesLabel,
   departmentLabel,
   jobTypeLabel,
 } from "@/lib/jobs";
@@ -15,6 +17,7 @@ import {
  * the whole card is a link to the role detail.
  */
 export default function JobCard({ job }: { job: Job }) {
+  const age = formatAgeRange(job.minAge, job.maxAge);
   return (
     <Link
       href={`/jobs/${job.slug}`}
@@ -35,9 +38,12 @@ export default function JobCard({ job }: { job: Job }) {
       </div>
 
       <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1.5 text-body-sm text-text-muted">
-        <span className="inline-flex items-center gap-1.5">
+        <span
+          className="inline-flex items-center gap-1.5"
+          title={job.cities.length > 2 ? job.cities.map(cityLabel).join(", ") : undefined}
+        >
           <MapPin size={14} className="text-text-subtle" aria-hidden />
-          {cityLabel(job.city)}
+          {citiesLabel(job.cities)}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Briefcase size={14} className="text-text-subtle" aria-hidden />
@@ -45,9 +51,12 @@ export default function JobCard({ job }: { job: Job }) {
         </span>
       </div>
 
-      <p className="mb-5 text-h4 font-bold text-accent">
-        {formatSalary(job.minSalaryLpa, job.maxSalaryLpa)}
-      </p>
+      <div className="mb-5">
+        <p className="text-h4 font-bold text-accent">
+          {formatSalary(job.minSalaryLpa, job.maxSalaryLpa)}
+        </p>
+        {age && <p className="mt-0.5 text-body-sm text-text-muted">Age: {age}</p>}
+      </div>
 
       <div className="mt-auto flex flex-wrap items-center gap-2">
         <span className="rounded-full border border-border bg-surface-2 px-3 py-1 text-caption text-text-muted">

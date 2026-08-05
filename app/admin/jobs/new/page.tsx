@@ -31,7 +31,7 @@ function NewJobInner() {
         title: inquiry.roleTitle,
         company: inquiry.companyName,
         department: inquiry.department,
-        city: inquiry.city,
+        cities: [inquiry.city],
         type: inquiry.type,
         minYears: inquiry.minYears,
         maxYears: inquiry.maxYears,

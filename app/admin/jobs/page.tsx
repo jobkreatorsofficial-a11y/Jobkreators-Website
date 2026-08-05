@@ -6,7 +6,7 @@ import { Plus, Search, Eye, Pencil, Trash2, Lock, RotateCcw } from "lucide-react
 import { useJobs, useApplications, useSetJobStatus, useDeleteJob, useDeleteJobs } from "@/lib/admin/hooks";
 import { AdminPageHeader, StatusBadge, ErrorState, LoadingState } from "@/components/admin/ui";
 import { JOB_STATUSES } from "@/lib/constants";
-import { departmentLabel, cityLabel, formatDate } from "@/lib/jobs";
+import { departmentLabel, cityLabel, citiesLabel, formatDate } from "@/lib/jobs";
 import type { JobStatus } from "@/lib/schema";
 
 export default function AdminJobsPage() {
@@ -156,7 +156,7 @@ export default function AdminJobsPage() {
                     <div className="text-caption text-text-subtle">{job.company}</div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-text-muted">{departmentLabel(job.department)}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-text-muted">{cityLabel(job.city)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-text-muted" title={job.cities.length > 2 ? job.cities.map(cityLabel).join(", ") : undefined}>{citiesLabel(job.cities)}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={job.status} />
                   </td>

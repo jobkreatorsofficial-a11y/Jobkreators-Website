@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, UploadCloud, FileText, X, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import type { Job, JobApplication, City } from "@/lib/schema";
+import type { Job } from "@/lib/schema";
 import { CITIES } from "@/lib/constants";
 import {
   applicationFormSchema,
@@ -41,8 +41,8 @@ const inputCls =
  * ApplicationForm — 4-step stepper (Personal → Experience → CV & Cover → Review).
  * Used for a specific role (`job` set, source "direct") and for the general
  * /submit-cv flow (`job` null, source "unmatched-general"). Zod validates text
- * inputs per step; the CV file is validated imperatively. On submit it maps to the
- * `JobApplication` DB shape and logs it (Phase 2 replaces the log with an API call).
+ * inputs per step; the CV file is validated imperatively. On submit it POSTs
+ * multipart/form-data to /api/applications (CV upload + DB insert + email).
  */
 export default function ApplicationForm({
   job,
@@ -57,6 +57,9 @@ export default function ApplicationForm({
   const [cvError, setCvError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -91,46 +94,73 @@ export default function ApplicationForm({
     if (ok) setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
-  const onSubmit = (values: ApplicationFormValues) => {
+  const onSubmit = async (values: ApplicationFormValues) => {
     const err = validateCv(cvFile);
     if (err) {
       setCvError(err);
       setStep(2);
       return;
     }
-    const payload: JobApplication = {
-      id: crypto.randomUUID(),
-      jobId: job?.id ?? null,
-      jobSlug: job?.slug ?? null,
-      jobTitle: job?.title ?? null,
-      jobCompany: job?.company ?? null,
-      candidateName: values.candidateName,
-      candidateEmail: values.candidateEmail,
-      candidatePhone: values.candidatePhone,
-      candidateCity: values.candidateCity as City,
-      currentCompany: values.currentCompany?.trim() || null,
-      currentRole: values.currentRole?.trim() || null,
-      yearsOfExperience: values.yearsOfExperience,
-      currentSalaryLpa: values.currentSalaryLpa ?? null,
-      expectedSalaryLpa: values.expectedSalaryLpa ?? null,
-      noticePeriodDays: values.noticePeriodDays ?? null,
-      linkedinUrl: values.linkedinUrl?.trim() || null,
-      portfolioUrl: values.portfolioUrl?.trim() || null,
-      // Phase 2: the file is uploaded to Cloudinary and this becomes the real URL.
-      cvFileUrl: `mock://cloudinary/pending/${encodeURIComponent(cvFile!.name)}`,
-      cvFileName: cvFile!.name,
-      coverMessage: values.coverMessage?.trim() || null,
-      internalNotes: null, // admin-only; never set from the public form
-      status: "submitted",
-      source: job ? "direct" : "unmatched-general",
-      submittedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    // TODO Phase 2: replace with API call to POST /api/applications
-    if (process.env.NODE_ENV === "development") {
-      console.log("[JobApplication submitted]", payload);
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.set("jobId", job?.id ?? "");
+      fd.set("jobSlug", job?.slug ?? "");
+      fd.set("jobTitle", job?.title ?? "");
+      fd.set("jobCompany", job?.company ?? "");
+      fd.set("candidateName", values.candidateName);
+      fd.set("candidateEmail", values.candidateEmail);
+      fd.set("candidatePhone", values.candidatePhone);
+      fd.set("candidateCity", values.candidateCity);
+      fd.set("currentCompany", values.currentCompany?.trim() ?? "");
+      fd.set("currentRole", values.currentRole?.trim() ?? "");
+      fd.set("yearsOfExperience", String(values.yearsOfExperience));
+      fd.set("currentSalaryLpa", values.currentSalaryLpa != null ? String(values.currentSalaryLpa) : "");
+      fd.set("expectedSalaryLpa", values.expectedSalaryLpa != null ? String(values.expectedSalaryLpa) : "");
+      fd.set("noticePeriodDays", values.noticePeriodDays != null ? String(values.noticePeriodDays) : "");
+      fd.set("linkedinUrl", values.linkedinUrl?.trim() ?? "");
+      fd.set("portfolioUrl", values.portfolioUrl?.trim() ?? "");
+      fd.set("coverMessage", values.coverMessage?.trim() ?? "");
+      fd.set("source", job ? "direct" : "unmatched-general");
+      fd.set("cvFile", cvFile!);
+
+      const res = await fetch("/api/applications", { method: "POST", body: fd });
+
+      if (res.ok) {
+        const body = (await res.json()) as { applicationId?: string };
+        setApplicationId(body.applicationId ?? null);
+        setSubmitted(true);
+        return;
+      }
+
+      const body = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string[]> };
+      if (res.status === 413) {
+        setCvError("Your CV is too large (max 5MB).");
+        setStep(2);
+      } else if (res.status === 415) {
+        setCvError("Unsupported file type. Upload a PDF, DOC or DOCX.");
+        setStep(2);
+      } else if (res.status === 429) {
+        setSubmitError("Too many submissions. Please try again in an hour.");
+      } else if (res.status === 400 && body.fieldErrors) {
+        if (body.fieldErrors.cvFile) {
+          setCvError(body.fieldErrors.cvFile[0]);
+          setStep(2);
+        } else {
+          const errored = Object.keys(body.fieldErrors);
+          const stepIdx = STEP_FIELDS.findIndex((fields) => fields.some((f) => errored.includes(f)));
+          setStep(stepIdx >= 0 ? stepIdx : 0);
+          setSubmitError(body.error ?? "Please check the highlighted fields and try again.");
+        }
+      } else {
+        setSubmitError("Something went wrong. Please try again, or email us directly.");
+      }
+    } catch {
+      setSubmitError("Network error. Please try again, or email us directly.");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(true);
   };
 
   if (submitted) {
@@ -145,6 +175,11 @@ export default function ApplicationForm({
           application and will reach out from{" "}
           <span className="font-medium text-accent">{SITE.email}</span> within 48 hours.
         </p>
+        {applicationId && (
+          <p className="mt-3 text-caption text-text-subtle">
+            Reference: <span className="font-mono text-text-muted">{applicationId}</span>
+          </p>
+        )}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="/jobs"
@@ -368,12 +403,22 @@ export default function ApplicationForm({
           ) : (
             <button
               type="submit"
-              className="inline-flex h-11 items-center gap-1.5 rounded-full bg-accent px-6 text-body-sm font-semibold text-accent-fg hover:bg-accent-2"
+              disabled={submitting}
+              className="inline-flex h-11 items-center gap-1.5 rounded-full bg-accent px-6 text-body-sm font-semibold text-accent-fg hover:bg-accent-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit application
+              {submitting ? "Submitting…" : "Submit application"}
             </button>
           )}
         </div>
+
+        {submitError && (
+          <p className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-body-sm text-danger">
+            {submitError}{" "}
+            <a href={`mailto:${SITE.email}`} className="font-medium underline">
+              {SITE.email}
+            </a>
+          </p>
+        )}
       </form>
     </div>
   );

@@ -20,6 +20,8 @@ function enumOf<T extends string>(items: readonly { value: T }[]) {
 export const jobStatusSchema = enumOf(JOB_STATUSES);
 export const departmentSchema = enumOf(DEPARTMENTS);
 export const citySchema = enumOf(CITIES);
+// A job has one OR MORE cities (min 1). Candidate/inquiry cities stay single.
+export const citiesSchema = z.array(citySchema).min(1, "At least one city is required");
 export const jobTypeSchema = enumOf(JOB_TYPES);
 export const experienceLevelSchema = enumOf(EXPERIENCE_LEVELS);
 export const applicationStatusSchema = enumOf(APPLICATION_STATUSES);
@@ -29,7 +31,7 @@ export const inquiryStatusSchema = enumOf(EMPLOYER_INQUIRY_STATUSES);
 // Mirrors the Job shape. Server-managed fields (id / postedAt / createdAt /
 // updatedAt) are accepted-but-optional: the admin JobForm sends them, but the DB
 // fills sensible defaults if absent.
-export const createJobSchema = z.object({
+const jobObjectSchema = z.object({
   id: z.string().uuid().optional(),
   slug: z
     .string()
@@ -40,11 +42,13 @@ export const createJobSchema = z.object({
   company: z.string().min(1).max(200),
   companyLogoUrl: z.string().url().nullable().optional(),
   department: departmentSchema,
-  city: citySchema,
+  cities: citiesSchema,
   type: jobTypeSchema,
   experienceLevel: experienceLevelSchema,
   minYears: z.number().int().min(0).max(50),
   maxYears: z.number().int().min(0).max(50),
+  minAge: z.number().int().min(18).max(70).nullable().optional(),
+  maxAge: z.number().int().min(18).max(70).nullable().optional(),
   minSalaryLpa: z.number().int().min(0).max(1000).nullable(),
   maxSalaryLpa: z.number().int().min(0).max(1000).nullable(),
   description: z.string().min(1),
@@ -59,7 +63,17 @@ export const createJobSchema = z.object({
   updatedAt: z.string().optional(),
 });
 
-export const updateJobSchema = createJobSchema.partial();
+// If both age bounds are provided, maxAge must be >= minAge (hard block).
+// The "unusual range" hint (minAge < 21 or maxAge > 65) is intentionally NOT a
+// zod refine — it's a soft, non-blocking warning surfaced in the JobForm UI (2C.1),
+// since a refine failure would block the submit.
+function ageBoundsValid(d: { minAge?: number | null; maxAge?: number | null }): boolean {
+  return d.minAge == null || d.maxAge == null || d.maxAge >= d.minAge;
+}
+const ageError = { message: "Maximum age must be greater than or equal to minimum age", path: ["maxAge"] };
+
+export const createJobSchema = jobObjectSchema.refine(ageBoundsValid, ageError);
+export const updateJobSchema = jobObjectSchema.partial().refine(ageBoundsValid, ageError);
 
 export const deleteJobsSchema = z.object({
   ids: z.array(z.string().uuid()),

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Plus, X, Eye, PenLine } from "lucide-react";
 import type { Job, Department, City, JobType, ExperienceLevel } from "@/lib/schema";
-import { DEPARTMENTS, CITIES, JOB_TYPES, EXPERIENCE_LEVELS } from "@/lib/constants";
+import { DEPARTMENTS, CITIES, CITY_LABELS, JOB_TYPES, EXPERIENCE_LEVELS } from "@/lib/constants";
+import FilterDropdown from "@/components/jobs/FilterDropdown";
 
 const inputCls =
   "h-11 w-full rounded-lg border border-border bg-surface px-3.5 text-base text-text placeholder:text-text-subtle focus:border-accent focus:outline-none md:text-body-sm";
@@ -41,11 +42,13 @@ export default function JobForm({
   const [slug, setSlug] = useState(job?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(job)); // create (incl. seed) auto-slugs
   const [department, setDepartment] = useState<Department | "">(src?.department ?? "");
-  const [city, setCity] = useState<City | "">(src?.city ?? "");
+  const [cities, setCities] = useState<City[]>(src?.cities ?? []);
   const [type, setType] = useState<JobType | "">(src?.type ?? "");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">(src?.experienceLevel ?? "");
   const [minYears, setMinYears] = useState(src?.minYears != null ? String(src.minYears) : "");
   const [maxYears, setMaxYears] = useState(src?.maxYears != null ? String(src.maxYears) : "");
+  const [minAge, setMinAge] = useState(src?.minAge != null ? String(src.minAge) : "");
+  const [maxAge, setMaxAge] = useState(src?.maxAge != null ? String(src.maxAge) : "");
   const [minSalary, setMinSalary] = useState(src?.minSalaryLpa != null ? String(src.minSalaryLpa) : "");
   const [maxSalary, setMaxSalary] = useState(src?.maxSalaryLpa != null ? String(src.maxSalaryLpa) : "");
   const [description, setDescription] = useState(src?.description ?? "");
@@ -72,7 +75,7 @@ export default function JobForm({
     if (title.trim().length < 2) errs.title = "Title is required";
     if (company.trim().length < 2) errs.company = "Company is required";
     if (!department) errs.department = "Required";
-    if (!city) errs.city = "Required";
+    if (cities.length === 0) errs.cities = "Add at least one city";
     if (!type) errs.type = "Required";
     if (!experienceLevel) errs.experienceLevel = "Required";
     if (description.trim().length < 10) errs.description = "Add a description";
@@ -88,11 +91,13 @@ export default function JobForm({
       company: company.trim(),
       companyLogoUrl: job?.companyLogoUrl ?? null,
       department: department as Department,
-      city: city as City,
+      cities,
       type: type as JobType,
       experienceLevel: experienceLevel as ExperienceLevel,
       minYears: num(minYears),
       maxYears: num(maxYears),
+      minAge: numOrNull(minAge),
+      maxAge: numOrNull(maxAge),
       minSalaryLpa: numOrNull(minSalary),
       maxSalaryLpa: numOrNull(maxSalary),
       description: description.trim(),
@@ -146,12 +151,35 @@ export default function JobForm({
 
       {/* Classification */}
       <Section title="Classification">
+        {/* Locations — searchable multi-select with removable chips (min 1 required). */}
+        <div className="mb-5">
+          <span className={labelCls}>Locations</span>
+          {cities.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {cities.map((c) => (
+                <span
+                  key={c}
+                  className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/5 px-2.5 py-1 text-caption text-text"
+                >
+                  {CITY_LABELS[c]}
+                  <button
+                    type="button"
+                    onClick={() => setCities(cities.filter((x) => x !== c))}
+                    className="text-text-subtle hover:text-danger"
+                    aria-label={`Remove ${CITY_LABELS[c]}`}
+                  >
+                    <X size={12} aria-hidden />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <FilterDropdown label="Add city" options={CITIES} selected={cities} onChange={(next) => setCities(next as City[])} searchable />
+          {errors.cities && <p className="mt-1 text-caption text-danger">{errors.cities}</p>}
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <FieldWrap label="Department" error={errors.department}>
             <Select value={department} onChange={(v) => setDepartment(v as Department)} options={DEPARTMENTS} placeholder="Department" />
-          </FieldWrap>
-          <FieldWrap label="Location" error={errors.city}>
-            <Select value={city} onChange={(v) => setCity(v as City)} options={CITIES} placeholder="Location" />
           </FieldWrap>
           <FieldWrap label="Type" error={errors.type}>
             <Select value={type} onChange={(v) => setType(v as JobType)} options={JOB_TYPES} placeholder="Type" />
@@ -170,6 +198,12 @@ export default function JobForm({
           </FieldWrap>
           <FieldWrap label="Max salary (LPA)">
             <input type="number" min={0} className={inputCls} value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} placeholder="55" />
+          </FieldWrap>
+          <FieldWrap label="Min age" hint="optional — blank if no age preference">
+            <input type="number" min={18} max={70} className={inputCls} value={minAge} onChange={(e) => setMinAge(e.target.value)} placeholder="25" />
+          </FieldWrap>
+          <FieldWrap label="Max age" hint="optional">
+            <input type="number" min={18} max={70} className={inputCls} value={maxAge} onChange={(e) => setMaxAge(e.target.value)} placeholder="35" />
           </FieldWrap>
           <FieldWrap label="Applications close" hint="optional">
             <input type="date" className={inputCls} value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />

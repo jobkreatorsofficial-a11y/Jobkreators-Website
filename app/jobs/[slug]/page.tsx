@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Briefcase, Clock, Building2, IndianRupee, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Briefcase, Clock, Building2, IndianRupee, CalendarRange, Check } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/ui/Container";
@@ -13,12 +13,14 @@ import {
   getRelatedJobs,
   formatSalary,
   formatExperience,
+  formatAgeRange,
   formatDate,
   cityLabel,
+  citiesLabel,
   departmentLabel,
   jobTypeLabel,
 } from "@/lib/jobs";
-import type { Job } from "@/lib/schema";
+import type { Job, JobType } from "@/lib/schema";
 
 export function generateStaticParams() {
   return getPublicJobs().map((j) => ({ slug: j.slug }));
@@ -47,16 +49,68 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
   const { jobs: related, sameCompany } = getRelatedJobs(job);
   const applyHref = `/jobs/${job.slug}/apply`;
 
+  const ageRange = formatAgeRange(job.minAge, job.maxAge);
+  const allCities = job.cities.map(cityLabel).join(", ");
   const meta = [
-    { icon: MapPin, label: cityLabel(job.city) },
-    { icon: Building2, label: departmentLabel(job.department) },
-    { icon: Briefcase, label: jobTypeLabel(job.type) },
-    { icon: Clock, label: formatExperience(job.minYears, job.maxYears) },
-    { icon: IndianRupee, label: formatSalary(job.minSalaryLpa, job.maxSalaryLpa) },
+    // Full city list on hover when it's collapsed to "+ N more".
+    { icon: MapPin, label: citiesLabel(job.cities), title: job.cities.length > 2 ? allCities : undefined },
+    { icon: Building2, label: departmentLabel(job.department), title: undefined },
+    { icon: Briefcase, label: jobTypeLabel(job.type), title: undefined },
+    { icon: Clock, label: formatExperience(job.minYears, job.maxYears), title: undefined },
+    { icon: IndianRupee, label: formatSalary(job.minSalaryLpa, job.maxSalaryLpa), title: undefined },
+    // Age requirement — only shown when both bounds are set.
+    ...(ageRange ? [{ icon: CalendarRange, label: `Age: ${ageRange}`, title: undefined }] : []),
   ];
+
+  // Google Jobs structured data — one jobLocation per physical city (+ TELECOMMUTE
+  // for remote). "pan-india" / "multiple-locations" fall back to a country-level Place.
+  const physicalCities = job.cities.filter((c) => c !== "remote" && c !== "pan-india" && c !== "multiple-locations");
+  const isRemote = job.cities.includes("remote");
+  const employmentType: Record<JobType, string> = {
+    "full-time": "FULL_TIME",
+    "part-time": "PART_TIME",
+    contract: "CONTRACTOR",
+    internship: "INTERN",
+  };
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.description,
+    datePosted: job.postedAt,
+    ...(job.closesAt ? { validThrough: job.closesAt } : {}),
+    employmentType: employmentType[job.type],
+    hiringOrganization: { "@type": "Organization", name: job.company },
+    jobLocation: (physicalCities.length ? physicalCities.map(cityLabel) : [null]).map((locality) => ({
+      "@type": "Place",
+      address: { "@type": "PostalAddress", ...(locality ? { addressLocality: locality } : {}), addressCountry: "IN" },
+    })),
+    ...(isRemote
+      ? { jobLocationType: "TELECOMMUTE", applicantLocationRequirements: { "@type": "Country", name: "India" } }
+      : {}),
+    ...(job.minSalaryLpa != null && job.maxSalaryLpa != null
+      ? {
+          baseSalary: {
+            "@type": "MonetaryAmount",
+            currency: "INR",
+            value: {
+              "@type": "QuantitativeValue",
+              minValue: job.minSalaryLpa * 100000,
+              maxValue: job.maxSalaryLpa * 100000,
+              unitText: "YEAR",
+            },
+          },
+        }
+      : {}),
+  };
 
   return (
     <>
+      {/* Google Jobs structured data (escaped to avoid </script> breakout). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <Navbar />
       {/* pb allows room for the fixed mobile apply bar */}
       <main id="main" className="min-h-screen pb-28 pt-28 md:pb-24 md:pt-32">
@@ -76,7 +130,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ slug
                 <h1 className="mt-1 font-display text-h1 md:text-h1-md">{job.title}</h1>
                 <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-body-sm text-text-muted">
                   {meta.map((m) => (
-                    <li key={m.label} className="inline-flex items-center gap-1.5">
+                    <li key={m.label} title={m.title} className="inline-flex items-center gap-1.5">
                       <m.icon size={15} className="text-text-subtle" aria-hidden />
                       {m.label}
                     </li>

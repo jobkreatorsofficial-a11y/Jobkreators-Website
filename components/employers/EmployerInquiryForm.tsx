@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, UploadCloud, FileText, X, ArrowLeft, ArrowRight, CheckCircle2, Lock } from "lucide-react";
-import type { EmployerInquiry, Department, City, JobType } from "@/lib/schema";
 import { DEPARTMENTS, CITIES, JOB_TYPES } from "@/lib/constants";
 import {
   employerInquiryFormSchema,
@@ -41,6 +40,9 @@ export default function EmployerInquiryForm() {
   const [jdError, setJdError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [inquiryId, setInquiryId] = useState<string | null>(null);
 
   const {
     register,
@@ -64,43 +66,81 @@ export default function EmployerInquiryForm() {
     if (ok) setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
-  const onSubmit = (values: EmployerFormValues) => {
+  const onSubmit = async (values: EmployerFormValues) => {
     const err = validateJd(jdMode, values.jdText, jdFile);
     if (err) {
       setJdError(err);
       setStep(2);
       return;
     }
-    const payload: EmployerInquiry = {
-      id: crypto.randomUUID(),
-      companyName: values.companyName,
-      companyWebsite: values.companyWebsite?.trim() || null,
-      contactPerson: values.contactPerson,
-      contactEmail: values.contactEmail,
-      contactPhone: values.contactPhone,
-      designation: values.designation,
-      roleTitle: values.roleTitle,
-      department: values.department as Department,
-      city: values.city as City,
-      type: values.type as JobType,
-      minYears: values.minYears,
-      maxYears: values.maxYears,
-      minSalaryLpa: values.minSalaryLpa ?? null,
-      maxSalaryLpa: values.maxSalaryLpa ?? null,
-      openings: values.openings,
-      jdText: jdMode === "paste" ? values.jdText?.trim() || null : null,
-      // Phase 2: the file is uploaded to Cloudinary and this becomes the real URL.
-      jdFileUrl: jdMode === "upload" && jdFile ? `mock://cloudinary/jd/${encodeURIComponent(jdFile.name)}` : null,
-      additionalNotes: values.additionalNotes?.trim() || null,
-      status: "new",
-      submittedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    // TODO Phase 2: replace with API call to POST /api/employer-inquiries
-    if (process.env.NODE_ENV === "development") {
-      console.log("[EmployerInquiry submitted]", payload);
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const base: Record<string, string | number | null | undefined> = {
+        companyName: values.companyName,
+        companyWebsite: values.companyWebsite?.trim() ?? "",
+        contactPerson: values.contactPerson,
+        contactEmail: values.contactEmail,
+        contactPhone: values.contactPhone,
+        designation: values.designation,
+        roleTitle: values.roleTitle,
+        department: values.department,
+        city: values.city,
+        type: values.type,
+        minYears: values.minYears,
+        maxYears: values.maxYears,
+        minSalaryLpa: values.minSalaryLpa ?? "",
+        maxSalaryLpa: values.maxSalaryLpa ?? "",
+        openings: values.openings,
+        additionalNotes: values.additionalNotes?.trim() ?? "",
+      };
+
+      let res: Response;
+      if (jdMode === "upload" && jdFile) {
+        // Multipart — JD as an uploaded file.
+        const fd = new FormData();
+        Object.entries(base).forEach(([k, v]) => fd.set(k, v == null ? "" : String(v)));
+        fd.set("jdText", "");
+        fd.set("jdFile", jdFile);
+        res = await fetch("/api/employer-inquiries", { method: "POST", body: fd });
+      } else {
+        // JSON — JD as pasted text.
+        res = await fetch("/api/employer-inquiries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...base, jdText: values.jdText?.trim() ?? "" }),
+        });
+      }
+
+      if (res.ok) {
+        const body = (await res.json()) as { inquiryId?: string };
+        setInquiryId(body.inquiryId ?? null);
+        setSubmitted(true);
+        return;
+      }
+
+      const body = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string[]> };
+      if (res.status === 413) {
+        setJdError("The JD file is too large (max 5MB).");
+        setStep(2);
+      } else if (res.status === 415) {
+        setJdError("Unsupported file type. Upload a PDF, DOC or DOCX.");
+        setStep(2);
+      } else if (res.status === 429) {
+        setSubmitError("Too many submissions. Please try again in an hour.");
+      } else if (res.status === 400 && body.fieldErrors) {
+        const errored = Object.keys(body.fieldErrors);
+        const stepIdx = STEP_FIELDS.findIndex((fields) => fields.some((f) => errored.includes(f)));
+        setStep(stepIdx >= 0 ? stepIdx : 0);
+        setSubmitError(body.error ?? "Please check the highlighted fields and try again.");
+      } else {
+        setSubmitError("Something went wrong. Please try again, or email us directly.");
+      }
+    } catch {
+      setSubmitError("Network error. Please try again, or email us directly.");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(true);
   };
 
   if (submitted) {
@@ -115,6 +155,11 @@ export default function EmployerInquiryForm() {
           <span className="font-medium text-accent">admin@jobkreators.com</span> within 24 hours to
           scope your search.
         </p>
+        {inquiryId && (
+          <p className="mt-3 text-caption text-text-subtle">
+            Reference: <span className="font-mono text-text-muted">{inquiryId}</span>
+          </p>
+        )}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="/for-employers"
@@ -393,12 +438,22 @@ export default function EmployerInquiryForm() {
           ) : (
             <button
               type="submit"
-              className="inline-flex h-11 items-center gap-1.5 rounded-full bg-accent px-6 text-body-sm font-semibold text-accent-fg hover:bg-accent-2"
+              disabled={submitting}
+              className="inline-flex h-11 items-center gap-1.5 rounded-full bg-accent px-6 text-body-sm font-semibold text-accent-fg hover:bg-accent-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit inquiry
+              {submitting ? "Submitting…" : "Submit inquiry"}
             </button>
           )}
         </div>
+
+        {submitError && (
+          <p className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-body-sm text-danger">
+            {submitError}{" "}
+            <a href="mailto:admin@jobkreators.com" className="font-medium underline">
+              admin@jobkreators.com
+            </a>
+          </p>
+        )}
       </form>
     </div>
   );

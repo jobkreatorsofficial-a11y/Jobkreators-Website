@@ -21,17 +21,54 @@ export type Department =
   | "customer-success"
   | "other";
 
+// 45 Indian metros/cities + "remote" / "pan-india" / "multiple-locations".
+// Kept in sync with the `city` Postgres enum and the CITIES constant.
 export type City =
-  | "delhi-ncr"
-  | "bangalore"
-  | "mumbai"
-  | "pune"
-  | "hyderabad"
-  | "chennai"
-  | "kolkata"
+  | "agra"
   | "ahmedabad"
+  | "amritsar"
+  | "bangalore"
+  | "bhopal"
+  | "bhubaneswar"
+  | "chandigarh"
+  | "chennai"
+  | "coimbatore"
+  | "dehradun"
+  | "delhi-ncr"
+  | "faridabad"
+  | "ghaziabad"
+  | "gurgaon"
+  | "guwahati"
+  | "hyderabad"
+  | "indore"
+  | "jaipur"
+  | "jodhpur"
+  | "kanpur"
+  | "kochi"
+  | "kolkata"
+  | "lucknow"
+  | "ludhiana"
+  | "madurai"
+  | "mangalore"
+  | "mumbai"
+  | "multiple-locations"
+  | "mysuru"
+  | "nagpur"
+  | "nashik"
+  | "noida"
+  | "pan-india"
+  | "patna"
+  | "pune"
+  | "raipur"
+  | "ranchi"
   | "remote"
-  | "pan-india";
+  | "surat"
+  | "thiruvananthapuram"
+  | "tiruchirappalli"
+  | "vadodara"
+  | "varanasi"
+  | "vijayawada"
+  | "visakhapatnam";
 
 export type Job = {
   id: string; // UUID
@@ -40,11 +77,13 @@ export type Job = {
   company: string; // e.g. "Scaler"
   companyLogoUrl: string | null; // Cloudinary URL, null until admin uploads
   department: Department;
-  city: City;
+  cities: City[]; // One or more locations (min 1, enforced by validator)
   type: JobType;
   experienceLevel: ExperienceLevel;
   minYears: number; // e.g. 3
   maxYears: number; // e.g. 6
+  minAge: number | null; // Nullable — many roles don't specify an age preference
+  maxAge: number | null;
   minSalaryLpa: number | null; // Lakhs per annum, null = "competitive"
   maxSalaryLpa: number | null;
   description: string; // Markdown-supported body

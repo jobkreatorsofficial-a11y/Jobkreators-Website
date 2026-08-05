@@ -15,6 +15,20 @@
       "when": 1785915902611,
       "tag": "0001_productive_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785932103697,
+      "tag": "0002_stiff_forge",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785934410500,
+      "tag": "0003_cities_expand_and_multi",
+      "breakpoints": true
     }
   ]
 }

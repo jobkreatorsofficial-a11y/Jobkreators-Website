@@ -69,7 +69,8 @@ export default function JobsBrowser({ jobs }: { jobs: Job[] }) {
     const q = filters.q.trim().toLowerCase();
     const list = jobs.filter((job) => {
       if (filters.dept.length && !filters.dept.includes(job.department)) return false;
-      if (filters.city.length && !filters.city.includes(job.city)) return false;
+      // Multi-city: keep a job if ANY of its cities is in the selected filter cities.
+      if (filters.city.length && !job.cities.some((c) => filters.city.includes(c))) return false;
       if (filters.type.length && !filters.type.includes(job.type)) return false;
       if (filters.exp.length && !filters.exp.includes(job.experienceLevel)) return false;
       if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q)) return false;
@@ -114,7 +115,7 @@ export default function JobsBrowser({ jobs }: { jobs: Job[] }) {
           <div className="flex flex-wrap items-center gap-2">
             <SlidersHorizontal size={16} className="hidden text-text-subtle sm:block" aria-hidden />
             <FilterDropdown label="Department" options={DEPARTMENTS} selected={filters.dept} onChange={(v) => set("dept", v)} />
-            <FilterDropdown label="City" options={CITIES} selected={filters.city} onChange={(v) => set("city", v)} />
+            <FilterDropdown label="City" options={CITIES} selected={filters.city} onChange={(v) => set("city", v)} searchable />
             {JOB_TYPES.map((t) => (
               <Chip key={t.value} active={filters.type.includes(t.value)} onClick={() => toggleIn("type", t.value)}>
                 {t.label}

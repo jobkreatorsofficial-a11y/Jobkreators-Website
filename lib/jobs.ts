@@ -3,7 +3,7 @@
 
 import { MOCK_JOBS } from "@/lib/mock";
 import { CITY_LABELS, DEPARTMENT_LABELS, JOB_TYPE_LABELS } from "@/lib/constants";
-import type { Job } from "@/lib/schema";
+import type { Job, City } from "@/lib/schema";
 
 /** Jobs visible to the public seeker site — active only (closed/draft are admin-only). */
 export function getPublicJobs(): Job[] {
@@ -36,6 +36,12 @@ export function formatExperience(min: number, max: number): string {
   return `${min}–${max} yrs`;
 }
 
+/** "25–35 yrs" when BOTH age bounds are set, else null (so callers can hide it). */
+export function formatAgeRange(min: number | null, max: number | null): string | null {
+  if (min == null || max == null) return null;
+  return min === max ? `${min} yrs` : `${min}–${max} yrs`;
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** ISO → "18 Jul 2026". Parsed from the date part so it's timezone-independent
@@ -46,6 +52,17 @@ export function formatDate(iso: string): string {
   return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 
-export const cityLabel = (c: Job["city"]) => CITY_LABELS[c];
+/** Single-city label — for candidateCity / employer city, which stay singular. */
+export const cityLabel = (c: City) => CITY_LABELS[c];
+
+/** Compact multi-city label for a job's `cities` array:
+ *  1 → "Bangalore" · 2 → "Bangalore, Mumbai" · 3+ → "Bangalore + 2 more". */
+export function citiesLabel(cities: City[]): string {
+  if (cities.length === 0) return "";
+  if (cities.length === 1) return CITY_LABELS[cities[0]];
+  if (cities.length === 2) return `${CITY_LABELS[cities[0]]}, ${CITY_LABELS[cities[1]]}`;
+  return `${CITY_LABELS[cities[0]]} + ${cities.length - 1} more`;
+}
+
 export const departmentLabel = (d: Job["department"]) => DEPARTMENT_LABELS[d];
 export const jobTypeLabel = (t: Job["type"]) => JOB_TYPE_LABELS[t];

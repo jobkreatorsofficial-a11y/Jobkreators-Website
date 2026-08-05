@@ -15,22 +15,35 @@ export default function FilterDropdown({
   options,
   selected,
   onChange,
+  searchable = false,
 }: {
   label: string;
   options: readonly Option[];
   selected: string[];
   onChange: (next: string[]) => void;
+  searchable?: boolean; // typeahead — for long lists like the 45 cities
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+
+  const shown = searchable && query.trim()
+    ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setQuery("");
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -49,7 +62,11 @@ export default function FilterDropdown({
     <div className="relative" ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          const next = !open;
+          setOpen(next);
+          if (!next) setQuery("");
+        }}
         aria-expanded={open}
         className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-body-sm font-medium transition-colors ${
           count > 0
@@ -67,8 +84,21 @@ export default function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-60 overflow-auto rounded-xl border border-border bg-surface p-1.5 shadow-[var(--shadow-lg)]">
-          {options.map((opt) => {
+        <div className="absolute left-0 top-full z-30 mt-2 flex max-h-80 w-60 flex-col rounded-xl border border-border bg-surface p-1.5 shadow-[var(--shadow-lg)]">
+          {searchable && (
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search ${label.toLowerCase()}…`}
+              className="mb-1.5 h-9 w-full shrink-0 rounded-lg border border-border bg-surface px-3 text-body-sm text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
+            />
+          )}
+          <div className="overflow-auto">
+          {shown.length === 0 && (
+            <p className="px-2.5 py-3 text-body-sm text-text-subtle">No matches.</p>
+          )}
+          {shown.map((opt) => {
             const active = selected.includes(opt.value);
             return (
               <button
@@ -89,6 +119,7 @@ export default function FilterDropdown({
               </button>
             );
           })}
+          </div>
         </div>
       )}
     </div>

@@ -2,14 +2,16 @@
 // Handlers) touches the tables. Keeps SQL out of routes and gives every caller
 // inferred row types from db/types.ts.
 
-import { and, or, eq, ilike, gte, lte, inArray, desc, sql } from "drizzle-orm";
+import { and, or, eq, ilike, gte, lte, inArray, arrayContains, desc, sql } from "drizzle-orm";
 import { db } from "./index";
 import { jobs, jobApplications, employerInquiries, chatSessions } from "./schema";
 import type {
   Job,
   NewJob,
   JobApplication,
+  NewJobApplication,
   EmployerInquiry,
+  NewEmployerInquiry,
   ChatSession,
 } from "./types";
 import type {
@@ -55,7 +57,8 @@ export function listJobs(f: JobFilters = {}): Promise<Job[]> {
   const where = and(
     f.status ? eq(jobs.status, f.status) : undefined,
     f.department ? eq(jobs.department, f.department) : undefined,
-    f.city ? eq(jobs.city, f.city) : undefined,
+    // Multi-city: match rows whose cities array contains the requested city.
+    f.city ? arrayContains(jobs.cities, [f.city]) : undefined,
     f.search ? or(ilike(jobs.title, `%${f.search}%`), ilike(jobs.company, `%${f.search}%`)) : undefined,
   );
   return db
@@ -148,6 +151,12 @@ export async function patchApplication(
   return row;
 }
 
+/** Insert an application from the public flow (2C.4). */
+export async function createApplication(data: NewJobApplication): Promise<JobApplication> {
+  const [row] = await db.insert(jobApplications).values(data).returning();
+  return row;
+}
+
 // --- Employer inquiries (created via the public flow in 2C) ---
 export function listEmployerInquiries(f: InquiryFilters = {}): Promise<EmployerInquiry[]> {
   const where = and(
@@ -182,6 +191,12 @@ export async function patchInquiryStatus(
     .set({ status, updatedAt: new Date().toISOString() })
     .where(eq(employerInquiries.id, id))
     .returning();
+  return row;
+}
+
+/** Insert an employer inquiry from the public flow (2C.4). */
+export async function createEmployerInquiry(data: NewEmployerInquiry): Promise<EmployerInquiry> {
+  const [row] = await db.insert(employerInquiries).values(data).returning();
   return row;
 }
 

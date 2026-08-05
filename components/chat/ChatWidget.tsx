@@ -4,7 +4,7 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle, X, Send, Bot, UploadCloud, FileText, RotateCcw } from "lucide-react";
 import { CITIES, CITY_LABELS } from "@/lib/constants";
-import { getPublicJobs, formatSalary, cityLabel } from "@/lib/jobs";
+import { getPublicJobs, formatSalary, citiesLabel } from "@/lib/jobs";
 import { validateCv, CV_ACCEPT } from "@/lib/forms";
 import type { Job, City, Department } from "@/lib/schema";
 
@@ -89,7 +89,11 @@ function recommend(ctx: Ctx): Job[] {
     if (dept && j.department === dept) score += 5;
     if (role && j.title.toLowerCase().includes(role)) score += 4;
     if (ctx.preferredCities?.length) {
-      if (ctx.preferredCities.includes(j.city) || j.city === "remote" || j.city === "pan-india") score += 3;
+      // Match if any preferred city overlaps the job's cities, or the job is
+      // location-flexible (remote / pan-india / multiple-locations).
+      const overlap = j.cities.some((c) => ctx.preferredCities!.includes(c));
+      const flexible = j.cities.some((c) => c === "remote" || c === "pan-india" || c === "multiple-locations");
+      if (overlap || flexible) score += 3;
     } else score += 1;
     if (ctx.yearsOfExperience != null && ctx.yearsOfExperience >= j.minYears && ctx.yearsOfExperience <= j.maxYears + 2) score += 2;
     if (ctx.minSalaryLpa != null && j.maxSalaryLpa != null && j.maxSalaryLpa >= ctx.minSalaryLpa) score += 1;
@@ -410,7 +414,7 @@ function ChatJobCard({ job, onApply }: { job: Job; onApply: () => void }) {
     <div className="rounded-xl border border-border bg-surface p-3">
       <p className="text-body-sm font-semibold text-text">{job.title}</p>
       <p className="text-caption text-text-muted">
-        {job.company} · {cityLabel(job.city)}
+        {job.company} · {citiesLabel(job.cities)}
       </p>
       <div className="mt-2 flex items-center justify-between">
         <span className="text-caption font-medium text-accent">{formatSalary(job.minSalaryLpa, job.maxSalaryLpa)}</span>

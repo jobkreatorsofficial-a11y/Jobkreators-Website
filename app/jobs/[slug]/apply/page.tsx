@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/ui/Container";
 import ApplicationForm from "@/components/jobs/ApplicationForm";
-import { getJobBySlug, getPublicJobs, cityLabel, jobTypeLabel } from "@/lib/jobs";
+import { getJobBySlug, getPublicJobs, citiesLabel, jobTypeLabel } from "@/lib/jobs";
 
 export function generateStaticParams() {
   return getPublicJobs().map((j) => ({ slug: j.slug }));
@@ -57,7 +57,7 @@ export default async function ApplyPage({
             <p className="text-body-sm font-medium text-accent">{job.company}</p>
             <h1 className="mt-1 font-display text-h1 md:text-h1-md">Apply for {job.title}</h1>
             <p className="mt-3 text-body-sm text-text-muted">
-              {cityLabel(job.city)} · {jobTypeLabel(job.type)} · 100% free for candidates
+              {citiesLabel(job.cities)} · {jobTypeLabel(job.type)} · 100% free for candidates
             </p>
           </div>
 
