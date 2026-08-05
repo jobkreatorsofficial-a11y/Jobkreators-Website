@@ -17,6 +17,13 @@ function enumOf<T extends string>(items: readonly { value: T }[]) {
   return z.enum(items.map((i) => i.value) as [T, ...T[]]);
 }
 
+// Whole-number field: coerces strings / JSON numbers and ROUNDS fractional input to
+// the nearest integer. A strict integer check rejects a value like 2.5 with
+// "expected int, received number" (this bit prod), and the number inputs accept
+// decimals — so we normalise to an integer instead of rejecting.
+const wholeNumber = (min: number, max: number) =>
+  z.coerce.number().min(min).max(max).transform((n) => Math.round(n));
+
 export const jobStatusSchema = enumOf(JOB_STATUSES);
 export const departmentSchema = enumOf(DEPARTMENTS);
 export const citySchema = enumOf(CITIES);
@@ -45,12 +52,12 @@ const jobObjectSchema = z.object({
   cities: citiesSchema,
   type: jobTypeSchema,
   experienceLevel: experienceLevelSchema,
-  minYears: z.number().int().min(0).max(50),
-  maxYears: z.number().int().min(0).max(50),
-  minAge: z.number().int().min(18).max(70).nullable().optional(),
-  maxAge: z.number().int().min(18).max(70).nullable().optional(),
-  minSalaryLpa: z.number().int().min(0).max(1000).nullable(),
-  maxSalaryLpa: z.number().int().min(0).max(1000).nullable(),
+  minYears: wholeNumber(0, 50),
+  maxYears: wholeNumber(0, 50),
+  minAge: wholeNumber(18, 70).nullable().optional(),
+  maxAge: wholeNumber(18, 70).nullable().optional(),
+  minSalaryLpa: wholeNumber(0, 1000).nullable(),
+  maxSalaryLpa: wholeNumber(0, 1000).nullable(),
   description: z.string().min(1),
   responsibilities: z.array(z.string()),
   requirements: z.array(z.string()),

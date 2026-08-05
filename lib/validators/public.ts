@@ -16,19 +16,21 @@ const optStr = (max: number) =>
 const reqStr = (max: number, msg = "Required") =>
   z.preprocess((v) => (typeof v === "string" ? v.trim() : v), z.string().min(1, msg).max(max));
 
-// "" / null → null ; else Number (NaN passes through as a string so zod rejects it).
+// Whole-number fields. Coerce strings/JSON numbers and ROUND fractional input to
+// the nearest integer (the DB columns are integer, and a strict integer check would
+// reject a value like 2.5). "" / null → null. NaN passes through so zod rejects it.
 const optNum = (min: number, max: number) =>
   z.preprocess((v) => {
     if (v === "" || v == null) return null;
     const n = Number(v);
-    return Number.isNaN(n) ? v : n;
+    return Number.isNaN(n) ? v : Math.round(n);
   }, z.number().min(min).max(max).nullable());
 
 const reqNum = (min: number, max: number) =>
   z.preprocess((v) => {
     if (v === "" || v == null) return v;
     const n = Number(v);
-    return Number.isNaN(n) ? v : n;
+    return Number.isNaN(n) ? v : Math.round(n);
   }, z.number().min(min).max(max));
 
 const optUrl = (max: number) =>
