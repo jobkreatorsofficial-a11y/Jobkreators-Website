@@ -1,5 +1,5 @@
-// TODO Phase 2C: gate with Clerk requireAdmin()
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/api/admin-auth";
 import { listJobs, insertJob } from "@/db/queries";
 import { createJobSchema } from "@/lib/validators/admin";
 import { badRequest, serverError, numParam, enumParam } from "@/lib/api";
@@ -7,6 +7,8 @@ import { JOB_STATUSES, DEPARTMENTS, CITIES } from "@/lib/constants";
 
 // GET /api/admin/jobs — list with ?status &department &city &search &limit &offset
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   try {
     const sp = new URL(request.url).searchParams;
     const rows = await listJobs({
@@ -25,6 +27,8 @@ export async function GET(request: Request) {
 
 // POST /api/admin/jobs — create a job.
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   let body: unknown;
   try {
     body = await request.json();

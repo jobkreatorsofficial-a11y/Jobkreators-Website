@@ -1,11 +1,13 @@
-// TODO Phase 2C: gate with Clerk requireAdmin()
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/api/admin-auth";
 import { getJob, patchJob, removeJob } from "@/db/queries";
 import { updateJobSchema } from "@/lib/validators/admin";
 import { badRequest, notFound, serverError } from "@/lib/api";
 
 // GET /api/admin/jobs/[id]
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   try {
     const job = await getJob(id);
@@ -17,6 +19,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 // PATCH /api/admin/jobs/[id] — partial update (also used for status toggles).
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   let body: unknown;
   try {
@@ -36,6 +40,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 // DELETE /api/admin/jobs/[id] — hard delete. Applications keep null jobId (FK SET NULL).
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   try {
     await removeJob(id);

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import ThemeProvider from "@/components/ui/ThemeProvider";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { clerkBaseAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 // Body font.
@@ -54,28 +56,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Dual-theme brand (light default, dark alternative). next-themes writes
-    // data-theme on <html> via a pre-paint script, so suppressHydrationWarning is
-    // required here; the token system in globals.css swaps on that attribute.
-    <html
-      lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable}`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-screen overflow-x-hidden antialiased">
-        <ThemeProvider>
-          {/* Skip link — visible only on keyboard focus, jumps to <main id="main">. */}
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-surface-2 focus:px-4 focus:py-2 focus:text-body-sm focus:text-text focus:shadow-[var(--shadow-lg)] focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            Skip to content
-          </a>
-          {children}
-          {/* Floating assistant — self-hides on /admin (see ChatWidget). */}
-          <ChatWidget />
-        </ThemeProvider>
-      </body>
-    </html>
+    // ClerkProvider is OUTERMOST (above ThemeProvider) so useUser() works in every
+    // nested component. Dual-theme brand (light default, dark alternative): next-themes
+    // writes data-theme on <html> via a pre-paint script, so suppressHydrationWarning
+    // is required; the token system in globals.css swaps on that attribute.
+    <ClerkProvider appearance={clerkBaseAppearance} afterSignOutUrl="/">
+      <html
+        lang="en"
+        className={`${inter.variable} ${spaceGrotesk.variable}`}
+        suppressHydrationWarning
+      >
+        <body className="min-h-screen overflow-x-hidden antialiased">
+          <ThemeProvider>
+            {/* Skip link — visible only on keyboard focus, jumps to <main id="main">. */}
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-surface-2 focus:px-4 focus:py-2 focus:text-body-sm focus:text-text focus:shadow-[var(--shadow-lg)] focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Skip to content
+            </a>
+            {children}
+            {/* Floating assistant — self-hides on /admin (see ChatWidget). */}
+            <ChatWidget />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

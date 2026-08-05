@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { UserButton, ClerkLoading, ClerkLoaded, useUser } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   Briefcase,
@@ -12,9 +14,9 @@ import {
   Settings,
   Menu,
   X,
-  LogOut,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import { clerkThemedAppearance } from "@/lib/clerk-appearance";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -25,8 +27,6 @@ const NAV = [
   { href: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ] as const;
 
-const ADMIN_EMAIL = "admin@jobkreators.com";
-
 function isActive(pathname: string, item: (typeof NAV)[number]) {
   return item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
 }
@@ -34,6 +34,9 @@ function isActive(pathname: string, item: (typeof NAV)[number]) {
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const { resolvedTheme } = useTheme();
+  const email = user?.primaryEmailAddress?.emailAddress;
 
   const navList = (
     <nav className="flex flex-col gap-1">
@@ -85,14 +88,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden text-body-sm text-text-muted sm:block">{ADMIN_EMAIL}</span>
-            {/* TODO Phase 2: real sign-out via Clerk. For now, exits to the site. */}
-            <Link
-              href="/"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3 text-body-sm font-medium text-text hover:border-accent"
-            >
-              <LogOut size={15} aria-hidden /> Sign out
-            </Link>
+            {email && <span className="hidden text-body-sm text-text-muted sm:block">{email}</span>}
+            {/* Prevent a flash of unauthenticated UI while Clerk resolves. */}
+            <ClerkLoading>
+              <div className="h-8 w-8 animate-pulse rounded-full bg-surface-2" aria-hidden />
+            </ClerkLoading>
+            <ClerkLoaded>
+              <UserButton appearance={clerkThemedAppearance(resolvedTheme === "dark")} />
+            </ClerkLoaded>
           </div>
         </header>
 
@@ -120,7 +123,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
             {navList}
             <div className="mt-auto border-t border-border pt-4">
-              <p className="px-3 text-caption text-text-subtle">{ADMIN_EMAIL}</p>
+              {email && <p className="px-3 text-caption text-text-subtle">{email}</p>}
             </div>
           </div>
         </div>

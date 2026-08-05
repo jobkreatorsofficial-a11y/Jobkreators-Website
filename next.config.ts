@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Belt-and-suspenders noindex for the (formerly public) admin portal, on top of
+  // the layout's robots metadata — search engines must never crawl it.
+  async headers() {
+    return [
+      {
+        source: "/admin/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

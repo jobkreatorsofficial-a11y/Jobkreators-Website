@@ -1,11 +1,13 @@
-// TODO Phase 2C: gate with Clerk requireAdmin()
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/api/admin-auth";
 import { getEmployerInquiry, patchInquiryStatus, removeInquiry } from "@/db/queries";
 import { updateInquiryStatusSchema } from "@/lib/validators/admin";
 import { badRequest, notFound, serverError } from "@/lib/api";
 
 // GET /api/admin/employer-inquiries/[id]
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   try {
     const inquiry = await getEmployerInquiry(id);
@@ -17,6 +19,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 // PATCH /api/admin/employer-inquiries/[id] — status update.
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   let body: unknown;
   try {
@@ -36,6 +40,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 // DELETE /api/admin/employer-inquiries/[id]
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate.error;
   const { id } = await params;
   try {
     await removeInquiry(id);
