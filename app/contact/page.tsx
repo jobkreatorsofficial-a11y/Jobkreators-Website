@@ -60,7 +60,15 @@ export default function ContactPage() {
                   value: "Agra, Uttar Pradesh",
                   href: "#",
                   color: "accent",
-                  desc: "Serving Pan-India and beyond",
+                  desc: "Since 2019 · +91 7017132179",
+                },
+                {
+                  icon: MapPin,
+                  label: "Delhi NCR office",
+                  value: "Noida, Uttar Pradesh",
+                  href: "#",
+                  color: "accent",
+                  desc: "Delhi NCR operations · +91 7017132179",
                 },
                 {
                   icon: LinkedInIcon,

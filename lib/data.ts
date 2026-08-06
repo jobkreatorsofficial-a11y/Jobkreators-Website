@@ -11,6 +11,12 @@ export const SITE = {
   instagram: "https://instagram.com/job_kreators",
 } as const;
 
+// Two offices. Single source for the footer, contact page, About and JSON-LD.
+export const OFFICES = [
+  { role: "HQ", city: "Agra", region: "Uttar Pradesh", country: "India", note: "Headquarters, since 2019" },
+  { role: "Delhi NCR office", city: "Noida", region: "Uttar Pradesh", country: "India", note: "Delhi NCR operations" },
+] as const;
+
 export const STATS = [
   { value: 3400, suffix: "+", label: "Placements Made" },
   { value: 242, suffix: "+", label: "Clients Served" },

@@ -1,7 +1,8 @@
+import { MapPin } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FounderSection from "@/components/home/FounderSection";
-import { STATS } from "@/lib/data";
+import { STATS, OFFICES } from "@/lib/data";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -79,6 +80,24 @@ export default function AboutPage() {
                   </div>
                   <div className="text-xs text-text-muted uppercase tracking-wide">
                     {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Where we work */}
+        <section className="py-16 md:py-20 bg-surface-2">
+          <div className="max-w-3xl mx-auto px-6 lg:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold font-display text-text text-center mb-8">Where we work</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {OFFICES.map((o) => (
+                <div key={o.city} className="flex items-start gap-3 p-6 rounded-2xl bg-surface border border-border">
+                  <MapPin size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+                  <div>
+                    <p className="font-semibold text-text">{o.city}</p>
+                    <p className="text-sm text-text-muted">{o.note}</p>
                   </div>
                 </div>
               ))}

@@ -12,7 +12,7 @@ import ForJobSeekers from "@/components/home/ForJobSeekers";
 import FounderSection from "@/components/home/FounderSection";
 import CandidateCTA from "@/components/home/CandidateCTA";
 import JsonLd from "@/components/JsonLd";
-import { SITE, FOUNDER } from "@/lib/data";
+import { SITE, FOUNDER, OFFICES } from "@/lib/data";
 
 const SITE_URL = "https://jobkreators.com";
 
@@ -20,7 +20,8 @@ const SITE_URL = "https://jobkreators.com";
 // (≤60s stale) instead of letting that read make the whole page dynamic.
 export const revalidate = 60;
 
-// Organization + LocalBusiness structured data (Agra HQ).
+// Organization + one LocalBusiness node per office (Agra HQ + Noida) so Google can
+// surface both locations.
 const ORG_SCHEMA = {
   "@context": "https://schema.org",
   "@graph": [
@@ -39,10 +40,10 @@ const ORG_SCHEMA = {
       telephone: SITE.phone,
       sameAs: [SITE.linkedin, SITE.instagram],
     },
-    {
+    ...OFFICES.map((o) => ({
       "@type": "LocalBusiness",
-      "@id": `${SITE_URL}/#localbusiness`,
-      name: "JOBKREATORS",
+      "@id": `${SITE_URL}/#localbusiness-${o.city.toLowerCase()}`,
+      name: `JOBKREATORS — ${o.city}`,
       url: SITE_URL,
       image: `${SITE_URL}/brand/jk-lockup-light.png`,
       email: SITE.email,
@@ -50,12 +51,12 @@ const ORG_SCHEMA = {
       priceRange: "Free for candidates",
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Agra",
-        addressRegion: "Uttar Pradesh",
+        addressLocality: o.city,
+        addressRegion: o.region,
         addressCountry: "IN",
       },
       parentOrganization: { "@id": `${SITE_URL}/#organization` },
-    },
+    })),
   ],
 };
 

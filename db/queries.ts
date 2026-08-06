@@ -13,6 +13,7 @@ import type {
   EmployerInquiry,
   NewEmployerInquiry,
   ChatSession,
+  NewChatSession,
 } from "./types";
 import type {
   JobStatus,
@@ -243,6 +244,22 @@ export function listChatSessions(f: ChatFilters = {}): Promise<ChatSession[]> {
 export async function getChatSession(id: string): Promise<ChatSession | undefined> {
   const [row] = await db.select().from(chatSessions).where(eq(chatSessions.id, id)).limit(1);
   return row;
+}
+
+/** Upsert a chat session (created/updated as the conversation progresses). */
+export async function saveChatSession(data: NewChatSession): Promise<void> {
+  await db
+    .insert(chatSessions)
+    .values(data)
+    .onConflictDoUpdate({
+      target: chatSessions.id,
+      set: {
+        messages: data.messages,
+        candidateContext: data.candidateContext,
+        status: data.status,
+        updatedAt: new Date().toISOString(),
+      },
+    });
 }
 
 // --- Dashboard stats (single round-trip) ---

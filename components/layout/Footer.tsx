@@ -2,7 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import { Phone, Mail, MessageCircle, MapPin } from "lucide-react";
 import { LinkedInIcon, InstagramIcon } from "@/components/ui/SocialIcons";
-import { SITE, NAV_LINKS } from "@/lib/data";
+import { SITE, NAV_LINKS, OFFICES } from "@/lib/data";
 
 const whatsappHref = `https://wa.me/${SITE.whatsapp.replace("+", "")}`;
 
@@ -85,10 +85,14 @@ export default function Footer() {
                   WhatsApp Us
                 </a>
               </li>
-              <li className="flex items-start gap-2 text-body-sm text-text-muted">
-                <MapPin size={14} className="mt-0.5 shrink-0" aria-hidden />
-                Agra, Uttar Pradesh, India
-              </li>
+              {OFFICES.map((o) => (
+                <li key={o.city} className="flex items-start gap-2 text-body-sm text-text-muted">
+                  <MapPin size={14} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>
+                    {o.role}: {o.city}, {o.region}, {o.country}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

@@ -49,8 +49,17 @@ export default function ApplicationForm({
   prefill,
 }: {
   job: Job | null;
-  /** Optional prefill (e.g. from the chatbot): city value, years, expected salary. */
-  prefill?: { city?: string; exp?: string; salary?: string };
+  /** Optional prefill (e.g. from the chatbot): identity + city/years/salary/role. */
+  prefill?: {
+    city?: string;
+    exp?: string;
+    salary?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+    company?: string;
+  };
 }) {
   const [step, setStep] = useState(0);
   const [cvFile, setCvFile] = useState<File | null>(null);
@@ -72,7 +81,12 @@ export default function ApplicationForm({
     resolver: zodResolver(applicationFormSchema),
     mode: "onTouched",
     defaultValues: {
+      candidateName: prefill?.name ?? "",
+      candidateEmail: prefill?.email ?? "",
+      candidatePhone: prefill?.phone ?? "",
       candidateCity: prefill?.city ?? "",
+      currentRole: prefill?.role ?? "",
+      currentCompany: prefill?.company ?? "",
       yearsOfExperience: prefill?.exp ?? "",
       expectedSalaryLpa: prefill?.salary ?? "",
     } as Partial<ApplicationFormInput>,

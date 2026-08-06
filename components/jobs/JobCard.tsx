@@ -21,7 +21,7 @@ export default function JobCard({ job }: { job: Job }) {
   return (
     <Link
       href={`/jobs/${job.slug}`}
-      className="group/card flex h-full flex-col rounded-xl border border-border bg-surface p-6 transition-[border-color,box-shadow] duration-[var(--duration-base)] hover:border-accent hover:shadow-[var(--shadow-glow-accent)]"
+      className="group/card flex h-full flex-col rounded-xl border border-border bg-surface p-6 transition-[border-color,box-shadow,transform] duration-[var(--duration-base)] hover:-translate-y-0.5 hover:border-accent hover:shadow-[var(--shadow-glow-accent)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">

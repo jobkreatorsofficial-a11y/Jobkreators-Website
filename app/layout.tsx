@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   // The two client form pages get explicit titles via their route layouts.
   title: "JOBKREATORS — Hire Smarter. Hire in 72 Hours.",
   description: DESCRIPTION,
-  keywords: ["recruitment", "hiring", "job placement", "consultancy", "talent acquisition", "India", "Agra"],
+  keywords: ["recruitment", "hiring", "job placement", "consultancy", "talent acquisition", "India", "Agra", "Noida", "Delhi NCR"],
   alternates: { canonical: "/" },
   applicationName: "JOBKREATORS",
   // og:image + twitter:image are generated automatically from app/opengraph-image.tsx.

@@ -10,7 +10,8 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 export const BUTTON_BASE =
   "relative inline-flex items-center justify-center gap-2 rounded-full font-medium " +
-  "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-expo)] " +
+  "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--duration-fast)] ease-[var(--ease-out-expo)] " +
+  "active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 " +
   "focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-50";
 

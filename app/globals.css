@@ -374,6 +374,18 @@ body {
   }
 }
 
+/* Chat widget open — gentle spring-in (used via animate-[chat-in_...]). */
+@keyframes chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ============================================================================
    Reduced-motion: kill non-essential animation globally. framer-motion is
    additionally gated per-component on useMotionSafe() (the canonical primitive).

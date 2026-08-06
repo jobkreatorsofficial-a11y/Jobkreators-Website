@@ -41,10 +41,19 @@ export default async function ApplyPage({
   const job = await getJobBySlug(slug);
   if (!job || job.status !== "active") notFound();
 
-  // Optional prefill from the chatbot (?city=&exp=&salary=).
+  // Optional prefill from the chatbot (identity + city/exp/salary/role).
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  const prefill = { city: one(sp.city), exp: one(sp.exp), salary: one(sp.salary) };
+  const prefill = {
+    city: one(sp.city),
+    exp: one(sp.exp),
+    salary: one(sp.salary),
+    name: one(sp.name),
+    email: one(sp.email),
+    phone: one(sp.phone),
+    role: one(sp.role),
+    company: one(sp.company),
+  };
 
   return (
     <>
